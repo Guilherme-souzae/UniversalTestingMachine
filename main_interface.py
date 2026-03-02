@@ -1,4 +1,5 @@
 import sys
+import serial
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLabel, QPushButton, QLineEdit, QComboBox, 
                              QGroupBox, QGridLayout, QTabWidget, QCheckBox, QFrame)
@@ -7,6 +8,14 @@ from PyQt6.QtCore import Qt, QTimer
 class UniversalMaterialTestingSystem(QWidget):
     def __init__(self):
         super().__init__()
+
+        # Conexão
+        try:
+            self.arduino = serial.Serial('COM3', 115200, timeout=1)
+        except:
+            self.arduino = None
+            print("Arduino não encontrado.")
+
         self.setWindowTitle("Sistema de Controle - Máquina de Ensaio de Tração")
         self.setGeometry(30, 30, 1300, 950)
         self.contador_ref = 0
@@ -50,12 +59,12 @@ class UniversalMaterialTestingSystem(QWidget):
         self.btn_emergencia = QPushButton("EMERGÊNCIA")
         self.btn_emergencia.setCheckable(True)
         self.btn_emergencia.setStyleSheet("background-color: #ff4d4d; color: white; font-weight: bold; font-size: 22px; height: 60px;")
-        self.btn_emergencia.toggled.connect(self.gerenciar_emergencia)
+        self.btn_emergencia.toggled.connect(self.comando_emergencia)
         
         self.btn_reiniciar = QPushButton("REINICIAR")
         self.btn_reiniciar.setStyleSheet("background-color: #3498db; color: white; font-weight: bold; height: 60px;")
         self.btn_reiniciar.hide()
-        self.btn_reiniciar.clicked.connect(lambda: self.btn_emergencia.setChecked(False))
+        self.btn_reiniciar.clicked.connect(self.comando_reiniciar)
         
         self.layout_emergencia.addWidget(self.btn_emergencia, 4)
         self.layout_emergencia.addWidget(self.btn_reiniciar, 1)
@@ -96,10 +105,8 @@ class UniversalMaterialTestingSystem(QWidget):
         lay_btns = QHBoxLayout()
         self.btn_subir = QPushButton("▲ SUBIR"); self.btn_descer = QPushButton("▼ DESCER")
         self.btn_subir.setObjectName("btn_seta"); self.btn_descer.setObjectName("btn_seta")
-        
-        self.btn_subir.clicked.connect(lambda: self.btn_referenciar.setEnabled(True))
-        self.btn_descer.clicked.connect(lambda: self.btn_referenciar.setEnabled(True))
-        
+        self.btn_subir.clicked.connect(self.comando_subir)
+
         lay_btns.addWidget(self.btn_subir); lay_btns.addWidget(self.btn_descer)
         lay_manual.addLayout(lay_btns)
         lay_manual.addWidget(QLabel("Velocidade Manual (mm/min):"))
@@ -205,8 +212,8 @@ class UniversalMaterialTestingSystem(QWidget):
         self.btn_resetar = QPushButton("RESETAR"); self.btn_resetar.setObjectName("btn_resetar"); self.btn_resetar.setEnabled(False)
         self.btn_salvar = QPushButton("SALVAR"); self.btn_salvar.setObjectName("btn_salvar"); self.btn_salvar.setEnabled(False)
         
-        self.btn_iniciar.clicked.connect(self.iniciar_ensaio_processo)
-        self.btn_resetar.clicked.connect(self.resetar_ensaio_processo)
+        self.btn_iniciar.clicked.connect(self.comando_iniciar_ensaio)
+        self.btn_resetar.clicked.connect(self.comando_resetar_ensaio)
         
         # Layout divide igualmente o espaço 
         for btn in [self.btn_iniciar, self.btn_pausar, self.btn_resetar, self.btn_salvar]:
@@ -233,6 +240,27 @@ class UniversalMaterialTestingSystem(QWidget):
             ativo = cb.isChecked()
             l_n.setStyleSheet("color: white;" if ativo else "color: #444;")
             l_v.setStyleSheet(f"background: {'#3d3d3d' if ativo else '#2b2b2b'}; color: {'#00ff00' if ativo else '#333'}; padding: 4px; border: 1px solid #555;")
+
+    # Comandos
+    def comando_subir(self):
+        self.btn_referenciar.setEnabled(True)
+        if self.arduino: self.arduino.write(b"SUBIR\n")
+
+    def comando_emergencia(self):
+        self.gerenciar_emergencia()
+        if self.arduino: self.arduino.write(b"EMERGENCIA\n")
+
+    def comando_reiniciar(self):
+        self.btn_emergencia.setChecked(False)
+        if self.arduino: self.arduino.write(b"REINICIAR\n")
+
+    def comando_iniciar_ensaio(self):
+        self.iniciar_ensaio_processo()
+        if self.arduino: self.arduino.write(b"ENSAIO\n")
+
+    def comando_resetar_ensaio(self):
+        self.resetar_ensaio_processo()
+        if self.arduino: self.arduino.write(b"R_ENSAIO\n")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
