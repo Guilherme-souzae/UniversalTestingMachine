@@ -120,7 +120,7 @@ class UniversalMaterialTestingSystem(QWidget):
         # 2. PARADA FORÇADA (Restaurado e Esmaecendo) 
         grupo_parada = QGroupBox("Habilitar Parada Forçada por:")
         lay_parada = QVBoxLayout()
-        self.check_forca = QCheckBox("Carga Máxima (Célula 50kg)")
+        self.check_forca = QCheckBox("Carga Máxima (Célula 20kg)")
         self.check_desloc = QCheckBox("Deslocamento Máximo (mm):")
         self.input_desloc = QLineEdit("350"); self.input_desloc.setEnabled(False)
         self.check_manual = QCheckBox("Sem Parada (Manual)")
@@ -136,7 +136,7 @@ class UniversalMaterialTestingSystem(QWidget):
 
         # 3. GEOMETRIA E INDICADORES
         col2 = QVBoxLayout()
-        grupo_geo = QGroupBox("Geometria da Amostra (PS 2mm)")
+        grupo_geo = QGroupBox("Geometria da Amostra")
         lay_geo = QGridLayout()
         self.combo_tipo = QComboBox(); self.combo_tipo.addItems(["Retangular", "Tubo", "Cilíndrico"])
         lay_geo.addWidget(QLabel("Tipo:"), 0, 0); lay_geo.addWidget(self.combo_tipo, 0, 1)
