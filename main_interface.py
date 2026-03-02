@@ -59,7 +59,7 @@ class UniversalMaterialTestingSystem(QWidget):
         self.btn_emergencia = QPushButton("EMERGÊNCIA")
         self.btn_emergencia.setCheckable(True)
         self.btn_emergencia.setStyleSheet("background-color: #ff4d4d; color: white; font-weight: bold; font-size: 22px; height: 60px;")
-        self.btn_emergencia.toggled.connect(self.comando_emergencia)
+        self.btn_emergencia.toggled.connect(self.gerenciar_emergencia)
         
         self.btn_reiniciar = QPushButton("REINICIAR")
         self.btn_reiniciar.setStyleSheet("background-color: #3498db; color: white; font-weight: bold; height: 60px;")
@@ -105,7 +105,9 @@ class UniversalMaterialTestingSystem(QWidget):
         lay_btns = QHBoxLayout()
         self.btn_subir = QPushButton("▲ SUBIR"); self.btn_descer = QPushButton("▼ DESCER")
         self.btn_subir.setObjectName("btn_seta"); self.btn_descer.setObjectName("btn_seta")
+
         self.btn_subir.clicked.connect(self.comando_subir)
+        self.btn_descer.clicked.connect(self.comando_descer)
 
         lay_btns.addWidget(self.btn_subir); lay_btns.addWidget(self.btn_descer)
         lay_manual.addLayout(lay_btns)
@@ -245,10 +247,10 @@ class UniversalMaterialTestingSystem(QWidget):
     def comando_subir(self):
         self.btn_referenciar.setEnabled(True)
         if self.arduino: self.arduino.write(b"SUBIR\n")
-
-    def comando_emergencia(self):
-        self.gerenciar_emergencia()
-        if self.arduino: self.arduino.write(b"EMERGENCIA\n")
+    
+    def comando_descer(self):
+        self.btn_referenciar.setEnabled(True)
+        if self.arduino: self.arduino.write(b"DESCER\n")
 
     def comando_reiniciar(self):
         self.btn_emergencia.setChecked(False)
