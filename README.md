@@ -2,3 +2,7 @@
 Repositórios para o microcontrolador e computador do sistema da máquina de ensaio de tração em desenvolvimento.
 
 Códigos do projeto anterior na branch "reference"!
+
+# WIP:
+- feature: enviar dados do Arduino para o Python
+- fix: implementar protocólo de segurança UART
