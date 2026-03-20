@@ -1,20 +1,17 @@
 import sys
-import serial
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLabel, QPushButton, QLineEdit, QComboBox, 
                              QGroupBox, QGridLayout, QTabWidget, QCheckBox, QFrame)
 from PyQt6.QtCore import Qt, QTimer
 
+from uart_bridge import Arduino
+from commands import Comando
+
 class UniversalMaterialTestingSystem(QWidget):
     def __init__(self):
         super().__init__()
 
-        # Conexão
-        try:
-            self.arduino = serial.Serial('COM3', 115200, timeout=1)
-        except:
-            self.arduino = None
-            print("Arduino não encontrado.")
+        self.arduino = Arduino('COM3', 9600)
 
         self.setWindowTitle("Sistema de Controle - Máquina de Ensaio de Tração")
         self.setGeometry(30, 30, 1300, 950)
@@ -246,23 +243,23 @@ class UniversalMaterialTestingSystem(QWidget):
     # Comandos
     def comando_subir(self):
         self.btn_referenciar.setEnabled(True)
-        if self.arduino: self.arduino.write(b"SUBIR\n")
-    
+        self.arduino.enviar_comando(Comando.SUBIR)
+
     def comando_descer(self):
         self.btn_referenciar.setEnabled(True)
-        if self.arduino: self.arduino.write(b"DESCER\n")
+        self.arduino.enviar_comando(Comando.DESCER)
 
     def comando_reiniciar(self):
         self.btn_emergencia.setChecked(False)
-        if self.arduino: self.arduino.write(b"REINICIAR\n")
+        self.arduino.enviar_comando(Comando.RESET)
 
     def comando_iniciar_ensaio(self):
         self.iniciar_ensaio_processo()
-        if self.arduino: self.arduino.write(b"ENSAIO\n")
+        self.arduino.enviar_comando(Comando.ENSAIO)
 
     def comando_resetar_ensaio(self):
         self.resetar_ensaio_processo()
-        if self.arduino: self.arduino.write(b"R_ENSAIO\n")
+        self.arduino.enviar_comando(Comando.R_ENSAIO)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
