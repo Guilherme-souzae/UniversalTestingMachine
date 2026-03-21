@@ -5,4 +5,5 @@ Códigos do projeto anterior na branch "reference"!
 
 # WIP:
 - feature: enviar dados do Arduino para o Python
-- fix: implementar protocólo de segurança UART
+- feature: plotar o gráfico
+- docs: fazer análise de requisitos do sistema
