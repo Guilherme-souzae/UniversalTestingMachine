@@ -1,3 +1,12 @@
+// pinos
+#define LED_TESTE 2
+#define SENSOR_TESTE 3
+
+// configs
+#define DELAY_SENSOR 50 // ms
+#define DURACAO_ENSAIO 10000 // ms
+
+// comandos
 #define C_SUBIR 0
 #define C_DESCER 1
 #define C_RESET 2
@@ -7,7 +16,7 @@
 void setup() 
 {
   Serial.begin(9600);
-  pinMode(2,OUTPUT);
+  pinMode(LED_TESTE,OUTPUT);
 }
 
 void loop()
@@ -24,27 +33,43 @@ void runCommand(byte commando)
   switch (commando)
   {
     case C_SUBIR:
-      blink(2, 1);
+      blink(LED_TESTE, 1);
       break;
 
     case C_DESCER:
-      blink(2, 2);
+      blink(LED_TESTE, 2);
       break;
     
     case C_RESET:
-      blink(2, 3);
+      blink(LED_TESTE, 3);
       break;
 
     case C_ENSAIO:
-      blink(2, 4);
+      runEnsaio();
       break;
 
     case C_R_ENSAIO:
-      blink(2, 5);
+      blink(LED_TESTE, 5);
       break;
   }
 }
 
+void runEnsaio()
+{
+  unsigned long timeBuffer = millis();
+
+  while (true)
+  {
+    if (millis() - timeBuffer >= DURACAO_ENSAIO) break;
+
+    int sensor = analogRead(SENSOR_TESTE);
+    Serial.println(sensor);
+
+    delay(DELAY_SENSOR);
+  }
+}
+
+// teste 
 void blink(int port, int times)
 {
   for (int i = 0; i < times; i++)

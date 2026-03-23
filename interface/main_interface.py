@@ -256,6 +256,7 @@ class UniversalMaterialTestingSystem(QWidget):
     def comando_iniciar_ensaio(self):
         self.iniciar_ensaio_processo()
         self.arduino.enviar_comando(Comando.ENSAIO)
+        self.arduino.ler_dados(10)
 
     def comando_resetar_ensaio(self):
         self.resetar_ensaio_processo()
