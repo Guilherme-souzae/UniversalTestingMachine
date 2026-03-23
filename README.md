@@ -7,3 +7,4 @@ Códigos do projeto anterior na branch "reference"!
 - feature: enviar dados do Arduino para o Python
 - feature: plotar o gráfico
 - docs: fazer análise de requisitos do sistema
+- docs: fazer a máquina de estados
