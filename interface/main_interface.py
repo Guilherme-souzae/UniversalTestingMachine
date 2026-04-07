@@ -11,7 +11,7 @@ class UniversalMaterialTestingSystem(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.arduino = Arduino('COM3', 9600)
+        self.arduino = Arduino("COM3", 9600)
 
         self.setWindowTitle("Sistema de Controle - Máquina de Ensaio de Tração")
         self.setGeometry(30, 30, 1300, 950)
@@ -256,11 +256,15 @@ class UniversalMaterialTestingSystem(QWidget):
     def comando_iniciar_ensaio(self):
         self.iniciar_ensaio_processo()
         self.arduino.enviar_comando(Comando.ENSAIO)
-        self.arduino.ler_dados(10)
+
+        self.timer_leitura = QTimer()
+        self.timer_leitura.timeout.connect(self.arduino.ler_dados)
+        self.timer_leitura.start(100)
 
     def comando_resetar_ensaio(self):
         self.resetar_ensaio_processo()
         self.arduino.enviar_comando(Comando.R_ENSAIO)
+        self.timer_leitura.stop()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
