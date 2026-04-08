@@ -1,11 +1,10 @@
 import sys
-from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
-                             QLabel, QPushButton, QLineEdit, QComboBox, 
-                             QGroupBox, QGridLayout, QTabWidget, QCheckBox, QFrame)
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QComboBox, QGroupBox, QGridLayout, QTabWidget, QCheckBox, QFrame)
+from PyQt6.QtCore import Qt, QTimer, QElapsedTimer
 
 from uart_bridge import Arduino
 from commands import Comando
+from canvas_graph import GraficoCanvas
 
 class UniversalMaterialTestingSystem(QWidget):
     def __init__(self):
@@ -17,6 +16,12 @@ class UniversalMaterialTestingSystem(QWidget):
         self.setGeometry(30, 30, 1300, 950)
         self.contador_ref = 0
         
+        self.timer = QElapsedTimer()
+        self.timer.start()
+
+        self.tempo_anterior_ms = 0
+        self.tempo_total = 0
+
         # Botões 
         self.setStyleSheet("""
             QWidget { background-color: #2b2b2b; color: #ffffff; font-family: 'Segoe UI'; }
@@ -188,8 +193,10 @@ class UniversalMaterialTestingSystem(QWidget):
         
         # Gráficos
         lay_grafs = QHBoxLayout()
-        self.grafico1 = QFrame(); self.grafico1.setStyleSheet("background: white; border: 1px solid gray;")
-        self.grafico2 = QFrame(); self.grafico2.setStyleSheet("background: white; border: 1px solid gray;")
+        self.grafico1 = GraficoCanvas();
+        self.grafico1.setStyleSheet("background: white; border: 1px solid gray;")
+        self.grafico2 = GraficoCanvas();
+        self.grafico2.setStyleSheet("background: white; border: 1px solid gray;")
         lay_grafs.addWidget(self.grafico1); lay_grafs.addWidget(self.grafico2)
         layout_aba.addLayout(lay_grafs, 6)
         
@@ -258,13 +265,29 @@ class UniversalMaterialTestingSystem(QWidget):
         self.arduino.enviar_comando(Comando.ENSAIO)
 
         self.timer_leitura = QTimer()
-        self.timer_leitura.timeout.connect(self.arduino.ler_dados)
-        self.timer_leitura.start(100)
+        self.timer_leitura.timeout.connect(self.ler_dados)
+        self.timer_leitura.start(200)
 
     def comando_resetar_ensaio(self):
         self.resetar_ensaio_processo()
         self.arduino.enviar_comando(Comando.R_ENSAIO)
         self.timer_leitura.stop()
+        self.grafico1.plotar()
+
+    def ler_dados(self):
+        y = self.arduino.ler_dados()
+        if (y != None):
+            tempo_atual_ms = self.timer.elapsed()
+
+            delta_t = tempo_atual_ms - self.tempo_anterior_ms
+            self.tempo_anterior_ms = tempo_atual_ms
+
+            delta_t /= 1000.0
+            self.tempo_total += delta_t
+
+            x = self.tempo_total
+            self.grafico1.adicionar_ponto(x, y)
+            self.grafico1.plotar()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

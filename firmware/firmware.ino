@@ -1,6 +1,6 @@
 // pinos
 #define LED_TESTE 2
-#define SENSOR_TESTE 3
+#define SENSOR_TESTE A0
 
 // configs
 #define DELAY_SENSOR 50 // ms
@@ -17,6 +17,7 @@ void setup()
 {
   Serial.begin(9600);
   pinMode(LED_TESTE,OUTPUT);
+  pinMode(SENSOR_TESTE,INPUT);
 }
 
 void loop()
