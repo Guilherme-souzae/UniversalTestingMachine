@@ -10,7 +10,7 @@ class UniversalMaterialTestingSystem(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.arduino = Arduino("COM3", 9600)
+        self.arduino = Arduino("COM12", 9600)
 
         self.setWindowTitle("Sistema de Controle - Máquina de Ensaio de Tração")
         self.setGeometry(30, 30, 1300, 950)
@@ -193,9 +193,9 @@ class UniversalMaterialTestingSystem(QWidget):
         
         # Gráficos
         lay_grafs = QHBoxLayout()
-        self.grafico1 = GraficoCanvas();
+        self.grafico1 = GraficoCanvas()
         self.grafico1.setStyleSheet("background: white; border: 1px solid gray;")
-        self.grafico2 = GraficoCanvas();
+        self.grafico2 = GraficoCanvas()
         self.grafico2.setStyleSheet("background: white; border: 1px solid gray;")
         lay_grafs.addWidget(self.grafico1); lay_grafs.addWidget(self.grafico2)
         layout_aba.addLayout(lay_grafs, 6)
@@ -271,6 +271,7 @@ class UniversalMaterialTestingSystem(QWidget):
     def comando_resetar_ensaio(self):
         self.resetar_ensaio_processo()
         self.arduino.enviar_comando(Comando.R_ENSAIO)
+        self.grafico1.resetar_grafico()
         self.timer_leitura.stop()
         self.grafico1.plotar()
 
@@ -288,6 +289,8 @@ class UniversalMaterialTestingSystem(QWidget):
             x = self.tempo_total
             self.grafico1.adicionar_ponto(x, y)
             self.grafico1.plotar()
+
+            print(f'Ponto: {x},{y}')
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

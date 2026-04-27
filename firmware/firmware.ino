@@ -1,29 +1,49 @@
-// pinos
-#define LED_TESTE 2
-#define SENSOR_TESTE A0
+#include <HX711.h>
 
-// configs
-#define DELAY_SENSOR 50 // ms
+// Pinos
+#define DOUT_PIN 2 // pino de dados
+#define CLK_PIN 3 // pino de clock
+
+// Configs
+#define DELAY_SENSOR 50 // ms entre leituras
 #define DURACAO_ENSAIO 10000 // ms
+#define TIMEOUT_SENSOR 5000 // ms aguardando o sensor antes de desistir
 
-// comandos
+// Comandos
 #define C_SUBIR 0
 #define C_DESCER 1
 #define C_RESET 2
 #define C_ENSAIO 3
 #define C_R_ENSAIO 4
 
-void setup() 
+HX711 scale;
+const float fator_calibracao = 420.0;
+
+void setup()
 {
   Serial.begin(9600);
-  pinMode(LED_TESTE,OUTPUT);
-  pinMode(SENSOR_TESTE,INPUT);
+  scale.begin(DOUT_PIN, CLK_PIN);
+
+  // Aguarda o sensor ficar pronto antes de tarar
+  unsigned long t = millis();
+  while (!scale.is_ready())
+  {
+    if (millis() - t > TIMEOUT_SENSOR)
+    {
+      return;
+    }
+    delay(10);
+  }
+
+  scale.set_scale(fator_calibracao); // aplica fator de calibracao
+  scale.tare();
+
+  runEnsaio();
 }
 
 void loop()
 {
-  if (Serial.available())
-  {
+  if (Serial.available()) {
     byte cmd = Serial.read();
     runCommand(cmd);
   }
@@ -31,53 +51,33 @@ void loop()
 
 void runCommand(byte commando)
 {
-  switch (commando)
-  {
-    case C_SUBIR:
-      blink(LED_TESTE, 1);
-      break;
-
-    case C_DESCER:
-      blink(LED_TESTE, 2);
-      break;
-    
-    case C_RESET:
-      blink(LED_TESTE, 3);
-      break;
-
+  switch (commando) {
     case C_ENSAIO:
       runEnsaio();
-      break;
-
-    case C_R_ENSAIO:
-      blink(LED_TESTE, 5);
       break;
   }
 }
 
 void runEnsaio()
 {
-  unsigned long timeBuffer = millis();
+  unsigned long inicio = millis();
 
-  while (true)
+  while (millis() - inicio < DURACAO_ENSAIO)
   {
-    if (millis() - timeBuffer >= DURACAO_ENSAIO) break;
+    // Aguarda o sensor ficar pronto (com timeout)
+    unsigned long t = millis();
+    while (!scale.is_ready())
+    {
+      if (millis() - t > TIMEOUT_SENSOR)
+      {
+        return;
+      }
+      delay(5);
+    }
 
-    int sensor = analogRead(SENSOR_TESTE);
-    Serial.println(sensor);
-
+    float peso = scale.get_units(10);
+    peso = map(peso,-1023,1023,-100,100);
+    Serial.println(peso);
     delay(DELAY_SENSOR);
-  }
-}
-
-// teste 
-void blink(int port, int times)
-{
-  for (int i = 0; i < times; i++)
-  {
-    digitalWrite(port, LOW);
-    delay(100);
-    digitalWrite(port,HIGH);
-    delay(100);
   }
 }
