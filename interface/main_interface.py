@@ -11,6 +11,11 @@ class MainWindow(QWidget):
         super().__init__()
         self.ctrl = controller
 
+        self.ctrl.dados_recebidos.connect(self._on_dados)
+        self.ctrl.ensaio_iniciado.connect(self._on_ensaio_iniciado)
+        self.ctrl.ensaio_resetado.connect(self._on_ensaio_resetado)
+        self.ctrl.referencia_salva.connect(self._on_referencia_salva)
+
         self.setWindowTitle("Sistema de Controle - Máquina de Ensaio de Tração")
         self.setGeometry(30, 30, 1300, 950)
         self.contador_ref = 0
@@ -193,17 +198,6 @@ class MainWindow(QWidget):
         self.aba_relatorio.setLayout(layout_aba)
         self.atualizar_visual_aba2()
 
-    def iniciar_ensaio_processo(self):
-        self.btn_iniciar.setEnabled(False)
-        self.btn_pausar.setEnabled(True); self.btn_resetar.setEnabled(True); self.btn_salvar.setEnabled(True)
-        self.label_status.setText("▶ Ensaio em andamento...")
-
-    def resetar_ensaio_processo(self):
-        self.btn_iniciar.setEnabled(True)
-        self.btn_pausar.setEnabled(False); self.btn_resetar.setEnabled(False); self.btn_salvar.setEnabled(False)
-        self.label_status.setText("↺ Sistema resetado.")
-        QTimer.singleShot(2000, lambda: self.label_status.setText(""))
-
     def atualizar_visual_aba2(self):
         for nome, cb in self.dict_indics.items():
             l_n, l_v = self.res_widgets[nome]
@@ -213,6 +207,7 @@ class MainWindow(QWidget):
 
     # --- Reações a eventos do controller ---
     def _on_dados(self, x: float, y: float):
+        print("plotando")
         self.grafico1.adicionar_ponto(x, y)
         self.grafico1.plotar()
 
@@ -252,11 +247,9 @@ class MainWindow(QWidget):
         self.ctrl.reiniciar()
 
     def _on_btn_ensaio(self):
-        self.iniciar_ensaio_processo()
         self.ctrl.iniciar_ensaio()
 
     def _on_btn_rensaio(self):
-        self.resetar_ensaio_processo()
         self.ctrl.resetar_ensaio()
 
 if __name__ == "__main__":

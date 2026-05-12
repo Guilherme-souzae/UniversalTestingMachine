@@ -10,7 +10,7 @@ class MainController(QObject):
 
     def __init__(self):
         super().__init__()
-        self.arduino = Arduino("COM12", 9600)
+        self.arduino = Arduino("COM3", 9600)
         self.timer_leitura = QTimer()
         self.timer_leitura.timeout.connect(self._ler_dados)
 
@@ -21,16 +21,20 @@ class MainController(QObject):
 
     # --- Comandos de movimento ---
     def subir(self):
+        print("enviando comando subir")
         self.arduino.enviar_comando(Comando.SUBIR)
     
     def descer(self):
+        print("enviando comando descer")
         self.arduino.enviar_comando(Comando.DESCER)
 
     def reiniciar(self):
+        print("enviando comando reiniciar")
         self.arduino.enviar_comando(Comando.RESET)
 
     ## --- Ensaio ---
     def iniciar_ensaio(self):
+        print("enviando comando ensaio")
         self.arduino.enviar_comando(Comando.ENSAIO)
         self._elapsed.start()
         self._tempo_anterior_ms = 0
@@ -39,6 +43,7 @@ class MainController(QObject):
         self.ensaio_iniciado.emit()
 
     def resetar_ensaio(self):
+        print("enviando comando reiniciar ensaio")
         self.arduino.enviar_comando(Comando.R_ENSAIO)
         self.timer_leitura.stop()
         self.ensaio_resetado.emit()
@@ -58,3 +63,4 @@ class MainController(QObject):
             self._tempo_anterior_ms = agora
             self._tempo_total += delta
             self.dados_recebidos.emit(self._tempo_total, y)
+            print(f'recebendo leitura de dados x:{self._tempo_total} y:{y}')

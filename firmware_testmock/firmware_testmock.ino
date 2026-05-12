@@ -1,7 +1,3 @@
-// Pinos
-#define DOUT_PIN 2 // pino de dados
-#define CLK_PIN 3 // pino de clock
-
 // Configs
 #define DELAY_SENSOR 50 // ms entre leituras
 #define DURACAO_ENSAIO 10000 // ms
@@ -14,29 +10,9 @@
 #define C_ENSAIO 3
 #define C_R_ENSAIO 4
 
-HX711 scale;
-const float fator_calibracao = 420.0;
-
 void setup()
 {
   Serial.begin(9600);
-  scale.begin(DOUT_PIN, CLK_PIN);
-
-  // Aguarda o sensor ficar pronto antes de tarar
-  unsigned long t = millis();
-  while (!scale.is_ready())
-  {
-    if (millis() - t > TIMEOUT_SENSOR)
-    {
-      return;
-    }
-    delay(10);
-  }
-
-  scale.set_scale(fator_calibracao); // aplica fator de calibracao
-  scale.tare();
-
-  runEnsaio();
 }
 
 void loop()
@@ -58,5 +34,12 @@ void runCommand(byte commando)
 
 void runEnsaio()
 {
-  Serial.print(300);
+  unsigned long inicio = millis();
+
+  while (millis() - inicio < DURACAO_ENSAIO)
+  {
+    float peso = 50;
+    Serial.println(peso);
+    delay(DELAY_SENSOR);
+  }
 }
