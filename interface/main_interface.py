@@ -1,27 +1,19 @@
 import sys
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QComboBox, QGroupBox, QGridLayout, QTabWidget, QCheckBox, QFrame)
-from PyQt6.QtCore import Qt, QTimer, QElapsedTimer
+from PyQt6.QtCore import Qt, QTimer
 
-from uart_bridge import Arduino
-from commands import Comando
+from main_controller import MainController
 from canvas_graph import GraficoCanvas
 from styles import STYLESHEET
 
-class UniversalMaterialTestingSystem(QWidget):
-    def __init__(self):
+class MainWindow(QWidget):
+    def __init__(self, controller: MainController):
         super().__init__()
-
-        self.arduino = Arduino("COM12", 9600)
+        self.ctrl = controller
 
         self.setWindowTitle("Sistema de Controle - Máquina de Ensaio de Tração")
         self.setGeometry(30, 30, 1300, 950)
         self.contador_ref = 0
-        
-        self.timer = QElapsedTimer()
-        self.timer.start()
-
-        self.tempo_anterior_ms = 0
-        self.tempo_total = 0
 
         # Botões 
         self.setStyleSheet(STYLESHEET)
@@ -38,7 +30,7 @@ class UniversalMaterialTestingSystem(QWidget):
         self.btn_reiniciar = QPushButton("REINICIAR")
         self.btn_reiniciar.setStyleSheet("background-color: #3498db; color: white; font-weight: bold; height: 60px;")
         self.btn_reiniciar.hide()
-        self.btn_reiniciar.clicked.connect(self.comando_reiniciar)
+        self.btn_reiniciar.clicked.connect(self._on_btn_reiniciar)
         
         self.layout_emergencia.addWidget(self.btn_emergencia, 4)
         self.layout_emergencia.addWidget(self.btn_reiniciar, 1)
@@ -80,8 +72,8 @@ class UniversalMaterialTestingSystem(QWidget):
         self.btn_subir = QPushButton("▲ SUBIR"); self.btn_descer = QPushButton("▼ DESCER")
         self.btn_subir.setObjectName("btn_seta"); self.btn_descer.setObjectName("btn_seta")
 
-        self.btn_subir.clicked.connect(self.comando_subir)
-        self.btn_descer.clicked.connect(self.comando_descer)
+        self.btn_subir.clicked.connect(self._on_btn_subir)
+        self.btn_descer.clicked.connect(self._on_btn_descer)
 
         lay_btns.addWidget(self.btn_subir); lay_btns.addWidget(self.btn_descer)
         lay_manual.addLayout(lay_btns)
@@ -190,8 +182,8 @@ class UniversalMaterialTestingSystem(QWidget):
         self.btn_resetar = QPushButton("RESETAR"); self.btn_resetar.setObjectName("btn_resetar"); self.btn_resetar.setEnabled(False)
         self.btn_salvar = QPushButton("SALVAR"); self.btn_salvar.setObjectName("btn_salvar"); self.btn_salvar.setEnabled(False)
         
-        self.btn_iniciar.clicked.connect(self.comando_iniciar_ensaio)
-        self.btn_resetar.clicked.connect(self.comando_resetar_ensaio)
+        self.btn_iniciar.clicked.connect(self._on_btn_ensaio)
+        self.btn_resetar.clicked.connect(self._on_btn_rensaio)
         
         # Layout divide igualmente o espaço 
         for btn in [self.btn_iniciar, self.btn_pausar, self.btn_resetar, self.btn_salvar]:
@@ -219,53 +211,57 @@ class UniversalMaterialTestingSystem(QWidget):
             l_n.setStyleSheet("color: white;" if ativo else "color: #444;")
             l_v.setStyleSheet(f"background: {'#3d3d3d' if ativo else '#2b2b2b'}; color: {'#00ff00' if ativo else '#333'}; padding: 4px; border: 1px solid #555;")
 
-    # Comandos
-    def comando_subir(self):
-        self.btn_referenciar.setEnabled(True)
-        self.arduino.enviar_comando(Comando.SUBIR)
-
-    def comando_descer(self):
-        self.btn_referenciar.setEnabled(True)
-        self.arduino.enviar_comando(Comando.DESCER)
-
-    def comando_reiniciar(self):
-        self.btn_emergencia.setChecked(False)
-        self.arduino.enviar_comando(Comando.RESET)
-
-    def comando_iniciar_ensaio(self):
-        self.iniciar_ensaio_processo()
-        self.arduino.enviar_comando(Comando.ENSAIO)
-
-        self.timer_leitura = QTimer()
-        self.timer_leitura.timeout.connect(self.ler_dados)
-        self.timer_leitura.start(200)
-
-    def comando_resetar_ensaio(self):
-        self.resetar_ensaio_processo()
-        self.arduino.enviar_comando(Comando.R_ENSAIO)
-        self.grafico1.resetar_grafico()
-        self.timer_leitura.stop()
+    # --- Reações a eventos do controller ---
+    def _on_dados(self, x: float, y: float):
+        self.grafico1.adicionar_ponto(x, y)
         self.grafico1.plotar()
 
-    def ler_dados(self):
-        y = self.arduino.ler_dados()
-        if (y != None):
-            tempo_atual_ms = self.timer.elapsed()
+    def _on_ensaio_iniciado(self):
+        self.btn_iniciar.setEnabled(False)
+        self.btn_pausar.setEnabled(True)
+        self.btn_resetar.setEnabled(True)
+        self.label_status.setText("▶ Ensaio em andamento...")
 
-            delta_t = tempo_atual_ms - self.tempo_anterior_ms
-            self.tempo_anterior_ms = tempo_atual_ms
+    def _on_ensaio_resetado(self):
+        self.grafico1.resetar_grafico()
+        self.grafico1.plotar()
+        self.btn_iniciar.setEnabled(True)
+        self.btn_pausar.setEnabled(False)
+        self.btn_resetar.setEnabled(False)
+        self.label_status.setText("↺ Sistema resetado.")
+        QTimer.singleShot(2000, lambda: self.label_status.setText(""))
 
-            delta_t /= 1000.0
-            self.tempo_total += delta_t
+    def _on_referencia_salva(self, nome: str):
+        self.combo_posicoes.addItem(nome)
+        self.combo_posicoes.setCurrentText(nome)
+        self.label_status.setText(f"✔ {nome} salva com sucesso!")
+        QTimer.singleShot(2500, lambda: self.label_status.setText(""))
+        self.btn_referenciar.setEnabled(False)
 
-            x = self.tempo_total
-            self.grafico1.adicionar_ponto(x, y)
-            self.grafico1.plotar()
+    # --- Comandos ---
+    def _on_btn_subir(self):
+        self.btn_referenciar.setEnabled(True)
+        self.ctrl.subir()
 
-            print(f'Ponto: {x},{y}')
+    def _on_btn_descer(self):
+        self.btn_referenciar.setEnabled(True)
+        self.ctrl.descer()
+
+    def _on_btn_reiniciar(self):
+        self.btn_emergencia.setChecked(False)
+        self.ctrl.reiniciar()
+
+    def _on_btn_ensaio(self):
+        self.iniciar_ensaio_processo()
+        self.ctrl.iniciar_ensaio()
+
+    def _on_btn_rensaio(self):
+        self.resetar_ensaio_processo()
+        self.ctrl.resetar_ensaio()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = UniversalMaterialTestingSystem()
+    controller = MainController()
+    window = MainWindow(controller)
     window.show()
     sys.exit(app.exec())
