@@ -10,7 +10,7 @@ class MainController(QObject):
 
     def __init__(self):
         super().__init__()
-        self.arduino = Arduino("COM3", 9600)
+        self.arduino = None
         self.timer_leitura = QTimer()
         self.timer_leitura.timeout.connect(self._ler_dados)
 
@@ -19,21 +19,37 @@ class MainController(QObject):
         self._tempo_total = 0.0
         self._contador_ref = 0
 
+    def conectar_serial(self, porta: str, baud: int) -> bool:
+        self.arduino = Arduino(porta, baud)
+        if self.arduino == None:
+            return False
+        else:
+            return True
+        
+    def desconectar_serial(self):
+        if self.arduino != None:
+            self.arduino.fechar_serial()
+            self.arduino = None
+
     # --- Comandos de movimento ---
     def subir(self):
+        if self.arduino == None: return
         print("enviando comando subir")
         self.arduino.enviar_comando(Comando.SUBIR)
     
     def descer(self):
+        if self.arduino == None: return
         print("enviando comando descer")
         self.arduino.enviar_comando(Comando.DESCER)
 
     def reiniciar(self):
+        if self.arduino == None: return
         print("enviando comando reiniciar")
         self.arduino.enviar_comando(Comando.RESET)
 
     ## --- Ensaio ---
     def iniciar_ensaio(self):
+        if self.arduino == None: return
         print("enviando comando ensaio")
         self.arduino.enviar_comando(Comando.ENSAIO)
         self._elapsed.start()
@@ -43,6 +59,7 @@ class MainController(QObject):
         self.ensaio_iniciado.emit()
 
     def resetar_ensaio(self):
+        if self.arduino == None: return
         print("enviando comando reiniciar ensaio")
         self.arduino.enviar_comando(Comando.R_ENSAIO)
         self.timer_leitura.stop()
@@ -56,6 +73,7 @@ class MainController(QObject):
 
     # --- Leitura periódica (privado) ---
     def _ler_dados(self):
+        if self.arduino == None: return
         y = self.arduino.ler_dados()
         if y is not None:
             agora = self._elapsed.elapsed()

@@ -11,6 +11,10 @@ class Arduino:
             self.arduino = None
             print(f"Erro ao conectar no Arduino: {e}")
 
+    def fechar_serial(self):
+        if hasattr(self, 'serial') and self.serial.is_open:
+            self.serial.close()
+
     def enviar_comando(self, comando):
         if self.arduino:
             self.arduino.write(bytes([comando.value]))

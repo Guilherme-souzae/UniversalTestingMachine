@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QComboBox, QGroupBox, QGridLayout, QTabWidget, QCheckBox, QFrame)
+from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QComboBox, QGroupBox, QGridLayout, QTabWidget, QCheckBox)
 from PyQt6.QtCore import Qt, QTimer
 
 from main_controller import MainController
@@ -139,6 +139,36 @@ class MainWindow(QWidget):
         layout.addLayout(col2, 0, 1, 2, 1)
         self.aba_config.setLayout(layout)
 
+        # 4. CONEXÃO SERIAL
+        grupo_serial = QGroupBox("Conexão Serial (Arduino)")
+        lay_serial = QGridLayout()
+
+        lay_serial.addWidget(QLabel("Porta (ex: COM3 ou /dev/ttyUSB0):"), 0, 0, 1, 2)
+
+        self.input_porta = QLineEdit("COM3")
+        self.input_porta.setPlaceholderText("Ex: COM3 ou /dev/ttyUSB0")
+        lay_serial.addWidget(self.input_porta, 1, 0, 1, 2)
+
+        self.btn_conectar = QPushButton("🔌 Conectar")
+        self.btn_conectar.setObjectName("btn_iniciar")  # reutiliza estilo verde
+        self.btn_conectar.clicked.connect(self._on_btn_conectar)
+
+        self.btn_desconectar = QPushButton("✖ Desconectar")
+        self.btn_desconectar.setObjectName("btn_resetar")  # reutiliza estilo vermelho
+        self.btn_desconectar.setEnabled(False)
+        self.btn_desconectar.clicked.connect(self._on_btn_desconectar)
+
+        lay_serial.addWidget(self.btn_conectar, 2, 0)
+        lay_serial.addWidget(self.btn_desconectar, 2, 1)
+
+        self.label_conexao = QLabel("● Desconectado")
+        self.label_conexao.setStyleSheet("color: #ff4d4d; font-weight: bold;")
+        self.label_conexao.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lay_serial.addWidget(self.label_conexao, 3, 0, 1, 2)
+
+        grupo_serial.setLayout(lay_serial)
+        layout.addWidget(grupo_serial, 2, 0)  # linha 2, coluna 0
+
     def salvar_referencia(self):
         self.contador_ref += 1
         nome = f"Referência {self.contador_ref}"
@@ -251,6 +281,32 @@ class MainWindow(QWidget):
 
     def _on_btn_rensaio(self):
         self.ctrl.resetar_ensaio()
+
+    def _on_btn_conectar(self):
+        porta = self.input_porta.text().strip()
+        baud = 9600
+
+        sucesso = self.ctrl.conectar_serial(porta, baud)
+
+        if sucesso:
+            self.label_conexao.setText("● Conectado")
+            self.label_conexao.setStyleSheet("color: #00ff00; font-weight: bold;")
+            self.btn_conectar.setEnabled(False)
+            self.btn_desconectar.setEnabled(True)
+            self.label_status.setText(f"✔ Conectado em {porta} @ {baud} bps")
+            QTimer.singleShot(2500, lambda: self.label_status.setText(""))
+        else:
+            self.label_conexao.setText("● Falha na conexão")
+            self.label_conexao.setStyleSheet("color: #ffaa00; font-weight: bold;")
+            self.label_status.setText(f"✖ Não foi possível conectar em {porta}")
+            QTimer.singleShot(3000, lambda: self.label_status.setText(""))
+
+    def _on_btn_desconectar(self):
+        self.ctrl.desconectar_serial()  # implemente no controller
+        self.label_conexao.setText("● Desconectado")
+        self.label_conexao.setStyleSheet("color: #ff4d4d; font-weight: bold;")
+        self.btn_conectar.setEnabled(True)
+        self.btn_desconectar.setEnabled(False)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
