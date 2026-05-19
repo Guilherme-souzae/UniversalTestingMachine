@@ -28,6 +28,7 @@ class MainController(QObject):
         
     def desconectar_serial(self):
         if self.arduino != None:
+            self.arduino.enviar_comando(Comando.PARAR)
             self.arduino.fechar_serial()
             self.arduino = None
 
@@ -41,6 +42,11 @@ class MainController(QObject):
         if self.arduino == None: return
         print("enviando comando descer")
         self.arduino.enviar_comando(Comando.DESCER)
+
+    def parar(self):
+        if self.arduino == None: return
+        print("enviando comando parar")
+        self.arduino.enviar_comando(Comando.PARAR)
 
     def reiniciar(self):
         if self.arduino == None: return

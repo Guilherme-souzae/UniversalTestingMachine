@@ -77,8 +77,10 @@ class MainWindow(QWidget):
         self.btn_subir = QPushButton("▲ SUBIR"); self.btn_descer = QPushButton("▼ DESCER")
         self.btn_subir.setObjectName("btn_seta"); self.btn_descer.setObjectName("btn_seta")
 
-        self.btn_subir.clicked.connect(self._on_btn_subir)
-        self.btn_descer.clicked.connect(self._on_btn_descer)
+        self.btn_subir.pressed.connect(self._on_btn_subir)
+        self.btn_descer.pressed.connect(self._on_btn_descer)
+        self.btn_subir.released.connect(self._on_btn_solto)
+        self.btn_descer.released.connect(self._on_btn_solto)
 
         lay_btns.addWidget(self.btn_subir); lay_btns.addWidget(self.btn_descer)
         lay_manual.addLayout(lay_btns)
@@ -271,6 +273,9 @@ class MainWindow(QWidget):
     def _on_btn_descer(self):
         self.btn_referenciar.setEnabled(True)
         self.ctrl.descer()
+
+    def _on_btn_solto(self):
+        self.ctrl.parar()
 
     def _on_btn_reiniciar(self):
         self.btn_emergencia.setChecked(False)
