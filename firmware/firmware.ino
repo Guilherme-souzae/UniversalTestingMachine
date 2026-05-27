@@ -1,97 +1,158 @@
 #include "HX711.h"
 
-// Pinos
-#define DOUT_PIN 2 // pino de dados
-#define CLK_PIN 3 // pino de clock
-#define DIR_PIN 4 // pino direcional do motor
-#define STEP_PIN 5 // pino de passo do motor 
+// ── Pinos - Motor de passo ─────────────────────────────
+#define DIR_PIN   2
+#define STEP_PIN  3
 
-// Configs
-#define DELAY_SENSOR 50 // ms entre leituras
-#define DURACAO_ENSAIO 10000 // ms
-#define TIMEOUT_SENSOR 5000 // ms aguardando o sensor antes de desistir
-#define STEPS_PER_REV 200 // passos para uma volta completa
-const float fator_calibracao = 420.0; // fato de calibração do modulo
+// ── Pinos - Célula de carga ────────────────────────────
+#define DOUT_PIN  4
+#define CLK_PIN   5
 
-// Comandos
-#define C_SUBIR 0
-#define C_DESCER 1
-#define C_RESET 2
-#define C_ENSAIO 3
-#define C_R_ENSAIO 4
+// ── Configs ────────────────────────────────────────────
+#define STEP_INTERVAL_US  1000UL
+#define ENSAIO_INTERVAL   50
+#define TIMEOUT_SENSOR    5000
+const float fator_calibracao = 420.0;
 
-// Estados
-#define E_IDLE 0
-#define E_MOVENDO 1
-#define E_ENSAIO 2
+// ── Comandos ───────────────────────────────────────────
+#define C_SUBIR    0
+#define C_DESCER   1
+#define C_PARAR    2
+#define C_RESET    3
+#define C_ENSAIO   4
+#define C_R_ENSAIO 5
 
-// Globals
+// ── Estados ────────────────────────────────────────────
+#define E_IDLE     0
+#define E_SUBINDO  1
+#define E_DESCENDO 2
+#define E_ENSAIO   3
+
+// ── Globais ────────────────────────────────────────────
 HX711 scale;
-unsigned short int STATE;
+unsigned short int state = E_IDLE;
 
+// Timer da leitura do ensaio
+unsigned long timeBuffer = 0;
+
+// Motor não bloqueante
+bool          stepState   = false;
+unsigned long lastStepUs  = 0;
+bool          motorDir    = true;
+
+// ── SETUP ──────────────────────────────────────────────
 void setup()
 {
-  // inicialização
-  STATE = E_IDLE;
   Serial.begin(9600);
-  scale.begin(DOUT_PIN, CLK_PIN);
-  pinMode(DIR_PIN, OUTPUT);
+
+  pinMode(DIR_PIN,  OUTPUT);
   pinMode(STEP_PIN, OUTPUT);
 
-  // Aguarda o sensor ficar pronto antes de tarar
+  scale.begin(DOUT_PIN, CLK_PIN);
   unsigned long t = millis();
   while (!scale.is_ready())
   {
-    if (millis() - t > TIMEOUT_SENSOR) return; // failsafe
+    if (millis() - t > TIMEOUT_SENSOR) return;
     delay(10);
   }
-
-  scale.set_scale(fator_calibracao); // aplica fator de calibracao
-  scale.tare(); // zera o modulo
+  for (int i = 0; i < 5; i++) { scale.read(); delay(50); }
+  scale.set_scale(fator_calibracao);
+  scale.tare(10);
 }
 
+// ── LOOP PRINCIPAL ─────────────────────────────────────
 void loop()
 {
-  lerComando();
-  executarEstado();
+  if (Serial.available())
+  {
+    byte cmd = Serial.read();
+    runCommand(cmd);
+  }
+  runState();
 }
 
-void lerComando()
+// ── PROCESSAMENTO DE COMANDOS ──────────────────────────
+void runCommand(byte commando)
 {
-  if (!Serial.available()) return;
-  
-  byte cmd = Serial.read();
-
-  switch(cmd)
+  switch (commando)
   {
     case C_SUBIR:
-      STATE = E_IDLE;
+      motorDir = true;
+      state = E_SUBINDO;
       break;
-
     case C_DESCER:
-      STATE = E_IDLE;
+      motorDir = false;
+      state = E_DESCENDO;
       break;
-      
+    case C_PARAR:
+    case C_RESET:
+      state = E_IDLE;
+      halt();
+      break;
     case C_ENSAIO:
-      STATE = E_ENSAIO;
+      motorDir = true;
+      state = E_ENSAIO;
+      timeBuffer = millis();
       break;
-   }
+    case C_R_ENSAIO:
+      state = E_IDLE;
+      halt();
+      break;
+  }
 }
 
-void executarEstado()
+// ── PROCESSAMENTO DE ESTADOS ───────────────────────────
+void runState()
 {
-  switch(STATE)
+  switch (state)
   {
+    case E_SUBINDO:
+      spin();
+      break;
+    case E_DESCENDO:
+      spin();
+      break;
     case E_ENSAIO:
       runEnsaio();
       break;
   }
 }
 
-void rotacionar(bool horario)
+// ── FUNÇÕES ────────────────────────────────────────────
+
+void runEnsaio()
 {
-  
-}
+  spin();   // pulsos contínuos, não bloqueante
+
+  unsigned long now = millis();
+  if (now - timeBuffer >= ENSAIO_INTERVAL)
+  {
+    timeBuffer = now;
+    readLoad(); // get_units(1) para não bloquear o loop por muito tempo
+  }
 }
 
-void runEnsaio() { }
+void spin()
+{
+  digitalWrite(DIR_PIN, motorDir ? HIGH : LOW);
+
+  unsigned long now = micros();
+  if (now - lastStepUs < STEP_INTERVAL_US) return;
+
+  lastStepUs = now;
+  stepState  = !stepState;
+  digitalWrite(STEP_PIN, stepState ? HIGH : LOW);
+}
+
+void halt()
+{
+  stepState = false;
+  digitalWrite(STEP_PIN, LOW);
+}
+
+void readLoad()
+{
+  if (!scale.is_ready()) return;
+  float peso = scale.get_units(1);
+  Serial.println(peso);
+}
