@@ -1,12 +1,16 @@
 #include "HX711.h"
 
+// ── Pinos - Botão de emergência ────────────────────────
+// ── NÃO ALTERAR, Pino 2 reservado para interrupções ────
+#define EMERG_PIN 2
+
 // ── Pinos - Motor de passo ─────────────────────────────
-#define DIR_PIN   2
-#define STEP_PIN  3
+#define DIR_PIN   3
+#define STEP_PIN  4
 
 // ── Pinos - Célula de carga ────────────────────────────
-#define DOUT_PIN  4
-#define CLK_PIN   5
+#define DOUT_PIN  5
+#define CLK_PIN   6
 
 // ── Configs ────────────────────────────────────────────
 #define STEP_INTERVAL_US  1000UL
@@ -30,7 +34,7 @@ const float fator_calibracao = 420.0;
 
 // ── Globais ────────────────────────────────────────────
 HX711 scale;
-unsigned short int state = E_IDLE;
+volatile unsigned short int state = E_IDLE;
 
 // Timer da leitura do ensaio
 unsigned long timeBuffer = 0;
@@ -40,14 +44,26 @@ bool          stepState   = false;
 unsigned long lastStepUs  = 0;
 bool          motorDir    = true;
 
+
+// ── INTERRUPÇÃO ────────────────────────────────────────
+void emergencyISR()
+{
+  state = E_IDLE;
+  halt();
+}
+
 // ── SETUP ──────────────────────────────────────────────
 void setup()
 {
+  // Inicializar Serial
   Serial.begin(9600);
 
+  // Inicializando pinos
   pinMode(DIR_PIN,  OUTPUT);
   pinMode(STEP_PIN, OUTPUT);
+  pinMode(EMERG_PIN, INPUT);
 
+  // Inicializar hx711
   scale.begin(DOUT_PIN, CLK_PIN);
   unsigned long t = millis();
   while (!scale.is_ready())
@@ -58,6 +74,9 @@ void setup()
   for (int i = 0; i < 5; i++) { scale.read(); delay(50); }
   scale.set_scale(fator_calibracao);
   scale.tare(10);
+
+  // atribuir interrupção
+  attachInterrupt(digitalPinToInterrupt(EMERG_PIN), emergencyISR, FALLING);
 }
 
 // ── LOOP PRINCIPAL ─────────────────────────────────────
