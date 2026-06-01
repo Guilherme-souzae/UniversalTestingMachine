@@ -1,13 +1,13 @@
 // Leds de teste
-#define C_RED 2
-#define C_GREEN 3
-#define C_BLUE 4
-#define E_RED 5
-#define E_GREEN 6
-#define E_BLUE 7
-#define M_CCLOCKWISE 8
-#define M_CLOCKWISE 9
-#define B_INTERRUPT 10
+#define C_RED 3
+#define C_GREEN 4
+#define C_BLUE 5
+#define E_RED 6
+#define E_GREEN 7
+#define E_BLUE 8
+#define M_CCLOCKWISE 9
+#define M_CLOCKWISE 10
+#define B_INTERRUPT 2
 
 // Comandos
 #define C_SUBIR 0
@@ -30,7 +30,14 @@ unsigned long ledSpinInterval = 50;
 unsigned long ledSpinBuffer = 0;
 bool ledSpinState = false;
 unsigned long timeBuffer = 0;
-unsigned int short state = 0;
+volatile unsigned int short state = 0;
+
+// --- EMERGENCIA
+void emergenciaISR()
+{
+  state = E_IDLE;
+  halt();
+}
 
 // --- SETUP
 void setup()
@@ -47,7 +54,10 @@ void setup()
   pinMode(E_BLUE, OUTPUT);
   pinMode(M_CCLOCKWISE, OUTPUT);
   pinMode(M_CLOCKWISE, OUTPUT);
-  pinMode(B_INTERRUPT, OUTPUT);
+  pinMode(B_INTERRUPT, INPUT);
+
+  // Atribuir Interrupção
+  attachInterrupt(digitalPinToInterrupt(B_INTERRUPT), emergenciaISR, FALLING);
 }
 
 // --- LOOP PRINCIPAL
