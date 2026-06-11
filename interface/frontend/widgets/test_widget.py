@@ -20,6 +20,10 @@ class TestWidget(QWidget):
         self.btn_pause = QPushButton("PAUSAR")
         self.btn_reset = QPushButton("RESETAR")
 
+        self.btn_start.setObjectName("startButton")
+        self.btn_pause.setObjectName("pauseButton")
+        self.btn_reset.setObjectName("resetButton")
+
         self.btn_start.clicked.connect(self.start_clicked.emit)
         self.btn_pause.clicked.connect(self.pause_clicked.emit)
         self.btn_reset.clicked.connect(self.reset_clicked.emit)

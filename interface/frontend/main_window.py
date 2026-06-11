@@ -41,6 +41,9 @@ class MainWindow(QWidget):
 
         # Conexão de sinais
 
+        # Botão de emergência
+        self.emergency_widget.emergency_clicked.connect(self.controller.disconect)
+
         # Controle manual
         self.conf_tab.manual_widget.up_pressed.connect(self.controller.subir)
         self.conf_tab.manual_widget.down_pressed.connect(self.controller.descer)

@@ -12,6 +12,11 @@ class MainController:
         else:
             print("Falha na conexão!")
 
+    def disconect(self):
+        self.arduino.enviar_comando(Comando.PARAR)
+        self.arduino.fechar_serial()
+        self.arduino = None
+        print("Conexão interrompida!")
 
     def subir(self):
         print("Subir")

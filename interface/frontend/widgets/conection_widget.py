@@ -19,9 +19,7 @@ class ConnectionWidget(QWidget):
             "CONECTAR AO ARDUINO"
         )
 
-        self.btn_connect.setObjectName(
-            "connectButton"
-        )
+        self.btn_connect.setObjectName("connectButton")
 
         self.btn_connect.setMinimumHeight(60)
 
