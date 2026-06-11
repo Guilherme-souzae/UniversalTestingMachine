@@ -2,7 +2,16 @@ from backend.serial_bridge import Comando, SerialBridge
 
 class MainController:
     def __init__(self):
-        self.arduino = SerialBridge(9600, "COM3")
+        self.arduino = None
+
+    def link(self):
+        self.arduino = SerialBridge()
+
+        if self.arduino.conectado():
+            print("Conexão estabelecida!")
+        else:
+            print("Falha na conexão!")
+
 
     def subir(self):
         print("Subir")

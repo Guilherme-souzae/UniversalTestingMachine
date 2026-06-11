@@ -1,5 +1,7 @@
 import serial
+from serial.tools import list_ports
 from enum import IntEnum
+
 
 class Comando(IntEnum):
     SUBIR = 0
@@ -9,37 +11,99 @@ class Comando(IntEnum):
     ENSAIO = 4
     R_ENSAIO = 5
 
+
 class SerialBridge:
-    def __init__(self, porta, baudrate):
+
+    BAUDRATE = 9600
+
+    def __init__(self):
+        self.arduino = None
+        self._buffer = ""
+
+        porta = self._encontrar_arduino()
+
+        if porta is None:
+            print("Arduino não encontrado")
+            return
+
         try:
-            # timeout=0 → não bloqueante; lê só o que já está no buffer
-            self.arduino = serial.Serial(porta, baudrate, timeout=0)
-            self._buffer = ""
-            print("Arduino conectado com sucesso")
+            self.arduino = serial.Serial(
+                porta,
+                self.BAUDRATE,
+                timeout=0
+            )
+
+            print(
+                f"Arduino conectado com sucesso em {porta}"
+            )
+
         except Exception as e:
-            self.arduino = None
-            print(f"Erro ao conectar no Arduino: {e}")
+            print(
+                f"Erro ao conectar ao Arduino: {e}"
+            )
+
+    def _encontrar_arduino(self):
+        portas = list(list_ports.comports())
+
+        # Tenta identificar por descrição
+        for porta in portas:
+
+            descricao = (
+                porta.description or ""
+            ).lower()
+
+            if (
+                "arduino" in descricao
+                or "ch340" in descricao
+                or "cp210" in descricao
+                or "usb serial" in descricao
+            ):
+                return porta.device
+
+        # Fallback:
+        # se existe apenas uma serial, assume que é ela
+        if len(portas) == 1:
+            return portas[0].device
+
+        return None
+
+    def conectado(self):
+        return (
+            self.arduino is not None
+            and self.arduino.is_open
+        )
 
     def fechar_serial(self):
-        if hasattr(self, 'serial') and self.serial.is_open:
-            self.serial.close()
+        if self.conectado():
+            self.arduino.close()
 
     def enviar_comando(self, comando):
-        if self.arduino:
-            self.arduino.write(bytes([comando.value]))
+        if self.conectado():
+            self.arduino.write(
+                bytes([comando.value])
+            )
 
     def ler_dados(self):
-        if not self.arduino:
+        if not self.conectado():
             return None
 
-        # Lê tudo disponível no buffer sem bloquear
-        raw = self.arduino.read(self.arduino.in_waiting or 1)
-        self._buffer += raw.decode('utf-8', errors='ignore')
+        raw = self.arduino.read(
+            self.arduino.in_waiting or 1
+        )
 
-        # Processa apenas linhas completas
-        if '\n' in self._buffer:
-            linha, self._buffer = self._buffer.split('\n', 1)
+        self._buffer += raw.decode(
+            "utf-8",
+            errors="ignore"
+        )
+
+        if "\n" in self._buffer:
+
+            linha, self._buffer = (
+                self._buffer.split("\n", 1)
+            )
+
             linha = linha.strip()
+
             if linha:
                 try:
                     return float(linha)

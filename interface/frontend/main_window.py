@@ -26,10 +26,10 @@ class MainWindow(QWidget):
 
         self.tabs = QTabWidget()
 
-        self.manual_tab = ConfigurationTab()
+        self.conf_tab = ConfigurationTab()
         self.test_tab = TestTab()
 
-        self.tabs.addTab(self.manual_tab, "Controle Manual")
+        self.tabs.addTab(self.conf_tab, "Controle Manual")
         self.tabs.addTab(self.test_tab, "Ensaio")
 
         layout = QVBoxLayout()
@@ -40,10 +40,16 @@ class MainWindow(QWidget):
         self.setLayout(layout)
 
         # Conexão de sinais
-        self.manual_tab.manual_widget.up_pressed.connect(self.controller.subir)
-        self.manual_tab.manual_widget.down_pressed.connect(self.controller.descer)
-        self.manual_tab.manual_widget.move_released.connect(self.controller.parar)
 
+        # Controle manual
+        self.conf_tab.manual_widget.up_pressed.connect(self.controller.subir)
+        self.conf_tab.manual_widget.down_pressed.connect(self.controller.descer)
+        self.conf_tab.manual_widget.move_released.connect(self.controller.parar)
+
+        #Controle de ensaio
         self.test_tab.test_widget.start_clicked.connect(self.controller.start)
         self.test_tab.test_widget.pause_clicked.connect(self.controller.pause)
         self.test_tab.test_widget.reset_clicked.connect(self.controller.reset)
+
+        # Conexão serial
+        self.conf_tab.connection_widget.connect_requested.connect(self.controller.link)
