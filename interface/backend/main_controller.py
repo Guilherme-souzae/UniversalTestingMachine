@@ -1,4 +1,4 @@
-from serial_bridge import Comando, SerialBridge
+from backend.serial_bridge import Comando, SerialBridge
 
 class MainController:
     def __init__(self):
