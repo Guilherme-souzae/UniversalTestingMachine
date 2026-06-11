@@ -9,7 +9,6 @@ class Comando(IntEnum):
     PARAR = 2
     RESET = 3
     ENSAIO = 4
-    R_ENSAIO = 5
 
 
 class SerialBridge:

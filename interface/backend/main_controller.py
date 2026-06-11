@@ -40,4 +40,4 @@ class MainController:
 
     def reset(self):
         print("Reset")
-        self.arduino.enviar_comando(Comando.R_ENSAIO)
+        self.arduino.enviar_comando(Comando.PARAR)
