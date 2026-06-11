@@ -22,6 +22,9 @@
         <mxCell id="5k9CQ7JrRwKiZ5ynWAmG-18" edge="1" parent="5k9CQ7JrRwKiZ5ynWAmG-10" source="5k9CQ7JrRwKiZ5ynWAmG-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=diamondThin;endFill=1;endSize=13;" target="5k9CQ7JrRwKiZ5ynWAmG-15">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <mxCell id="5k9CQ7JrRwKiZ5ynWAmG-30" edge="1" parent="5k9CQ7JrRwKiZ5ynWAmG-10" source="5k9CQ7JrRwKiZ5ynWAmG-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="5k9CQ7JrRwKiZ5ynWAmG-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="5k9CQ7JrRwKiZ5ynWAmG-14" parent="5k9CQ7JrRwKiZ5ynWAmG-10" style="swimlane;whiteSpace=wrap;html=1;" value="Widgets" vertex="1">
           <mxGeometry height="555" width="200" x="20" y="360" as="geometry" />
         </mxCell>
@@ -44,16 +47,31 @@
           <mxGeometry height="90" width="160" x="290" y="130" as="geometry" />
         </mxCell>
         <mxCell id="5k9CQ7JrRwKiZ5ynWAmG-11" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Backend" vertex="1">
-          <mxGeometry height="190" width="420" x="670" y="200" as="geometry" />
+          <mxGeometry height="340" width="430" x="670" y="200" as="geometry" />
         </mxCell>
         <mxCell id="5k9CQ7JrRwKiZ5ynWAmG-19" parent="5k9CQ7JrRwKiZ5ynWAmG-11" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;MainController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ field: Type&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ method(): Type&lt;/p&gt;" vertex="1">
-          <mxGeometry height="90" width="160" x="10" y="60" as="geometry" />
+          <mxGeometry height="90" width="160" x="20" y="60" as="geometry" />
         </mxCell>
         <mxCell id="5k9CQ7JrRwKiZ5ynWAmG-23" edge="1" parent="5k9CQ7JrRwKiZ5ynWAmG-11" source="5k9CQ7JrRwKiZ5ynWAmG-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=diamondThin;endFill=1;endSize=13;" target="5k9CQ7JrRwKiZ5ynWAmG-19">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="5k9CQ7JrRwKiZ5ynWAmG-20" parent="5k9CQ7JrRwKiZ5ynWAmG-11" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;SerialBridge&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ field: Type&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ method(): Type&lt;/p&gt;" vertex="1">
           <mxGeometry height="90" width="160" x="250" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5k9CQ7JrRwKiZ5ynWAmG-25" parent="5k9CQ7JrRwKiZ5ynWAmG-11" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=20;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;Comando&lt;/b&gt;" vertex="1">
+          <mxGeometry height="124" width="160" x="250" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="5k9CQ7JrRwKiZ5ynWAmG-26" parent="5k9CQ7JrRwKiZ5ynWAmG-25" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ SUBIR: Enum" vertex="1">
+          <mxGeometry height="26" width="160" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="5k9CQ7JrRwKiZ5ynWAmG-27" parent="5k9CQ7JrRwKiZ5ynWAmG-25" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ DESCER: Enum" vertex="1">
+          <mxGeometry height="26" width="160" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="5k9CQ7JrRwKiZ5ynWAmG-28" parent="5k9CQ7JrRwKiZ5ynWAmG-25" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ PARAR: Enum" vertex="1">
+          <mxGeometry height="26" width="160" y="72" as="geometry" />
+        </mxCell>
+        <mxCell id="5k9CQ7JrRwKiZ5ynWAmG-31" parent="5k9CQ7JrRwKiZ5ynWAmG-25" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ ENSAIO: Enum" vertex="1">
+          <mxGeometry height="26" width="160" y="98" as="geometry" />
         </mxCell>
         <mxCell id="5k9CQ7JrRwKiZ5ynWAmG-22" edge="1" parent="1" source="5k9CQ7JrRwKiZ5ynWAmG-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="5k9CQ7JrRwKiZ5ynWAmG-19">
           <mxGeometry relative="1" as="geometry" />
