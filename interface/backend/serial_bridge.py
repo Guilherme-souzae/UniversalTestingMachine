@@ -22,7 +22,7 @@ class SerialBridge:
         porta = self._encontrar_arduino()
 
         if porta is None:
-            print("Arduino não encontrado")
+            print("WARNING: Arduino não encontrado")
             return
 
         try:
@@ -33,12 +33,12 @@ class SerialBridge:
             )
 
             print(
-                f"Arduino conectado com sucesso em {porta}"
+                f"LOG: Arduino conectado com sucesso em {porta}"
             )
 
         except Exception as e:
             print(
-                f"Erro ao conectar ao Arduino: {e}"
+                f"WARNING: Erro ao conectar ao Arduino: {e}"
             )
 
     def _encontrar_arduino(self):
@@ -81,9 +81,12 @@ class SerialBridge:
             self.arduino.write(
                 bytes([comando.value])
             )
+        else:
+            print("WARNING: Arduino não conectado")
 
     def ler_dados(self):
         if not self.conectado():
+            print("WARNING: Arduino não conectado")
             return None
 
         raw = self.arduino.read(

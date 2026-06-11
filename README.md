@@ -30,7 +30,12 @@ pip install -r requirements.txt
 
 ### Executando
 
+
 ```bash
+# Navegue até o diretório correto
+cd interface
+
+# Execute o arquivo main.py
 python main.py
 ```
 

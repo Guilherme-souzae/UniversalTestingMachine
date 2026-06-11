@@ -10,7 +10,7 @@ class MainController(QObject):
 
     def __init__(self):
         super().__init__()
-        self.arduino = None
+        self.serial_bridge = SerialBridge()
 
         self._timer = QTimer(self)
         self._timer.setInterval(self.POLL_INTERVAL_MS)
@@ -19,51 +19,49 @@ class MainController(QObject):
     # ── conexão / desconexão ──────────────────────────────
 
     def link(self):
-        self.arduino = SerialBridge()
-        if self.arduino.conectado():
-            print("Conexão estabelecida!")
+        if self.serial_bridge.conectado():
+            print("LOG: Conexão estabelecida!")
         else:
-            print("Falha na conexão!")
+            print("WARNING: Falha na conexão!")
 
     def disconect(self):
         self._timer.stop()
-        self.arduino.enviar_comando(Comando.PARAR)
-        self.arduino.fechar_serial()
-        self.arduino = None
-        print("Conexão interrompida!")
+        self.serial_bridge.enviar_comando(Comando.PARAR)
+        self.serial_bridge.fechar_serial()
+        print("LOG: Conexão interrompida!")
 
     # ── controle manual ───────────────────────────────────
 
     def subir(self):
-        self.arduino.enviar_comando(Comando.SUBIR)
+        self.serial_bridge.enviar_comando(Comando.SUBIR)
 
     def descer(self):
-        self.arduino.enviar_comando(Comando.DESCER)
+        self.serial_bridge.enviar_comando(Comando.DESCER)
 
     def parar(self):
-        self.arduino.enviar_comando(Comando.PARAR)
+        self.serial_bridge.enviar_comando(Comando.PARAR)
 
     # ── ensaio ────────────────────────────────────────────
 
     def start(self):
-        self.arduino.enviar_comando(Comando.ENSAIO)
+        self.serial_bridge.enviar_comando(Comando.ENSAIO)
         self._timer.start()
 
     def pause(self):
         self._timer.stop()
-        self.arduino.enviar_comando(Comando.PARAR)
+        self.serial_bridge.enviar_comando(Comando.PARAR)
 
     def reset(self):
         self._timer.stop()
-        self.arduino.enviar_comando(Comando.PARAR)
+        self.serial_bridge.enviar_comando(Comando.PARAR)
 
     # ── slot privado do timer ─────────────────────────────
 
     def _poll_serial(self):
-        if not self.arduino or not self.arduino.conectado():
+        if not self.serial_bridge or not self.serial_bridge.conectado():
             self._timer.stop()
             return
 
-        valor = self.arduino.ler_dados()
+        valor = self.serial_bridge.ler_dados()
         if valor is not None:
             self.data_received.emit(valor)
