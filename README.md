@@ -34,8 +34,6 @@ pip install -r requirements.txt
 python main.py
 ```
 
-> ⚠️ Certifique-se de que a porta serial correta está configurada em `serial_bridge.py` antes de iniciar (ex: `COM3` no Windows ou `/dev/ttyUSB0` no Linux).
-
 ---
 
 ## 📁 Estrutura do Projeto
