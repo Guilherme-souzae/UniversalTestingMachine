@@ -1,6 +1,15 @@
 import serial
+from enum import IntEnum
 
-class Arduino:
+class Comando(IntEnum):
+    SUBIR = 0
+    DESCER = 1
+    PARAR = 2
+    RESET = 3
+    ENSAIO = 4
+    R_ENSAIO = 5
+
+class SerialBridge:
     def __init__(self, porta, baudrate):
         try:
             # timeout=0 → não bloqueante; lê só o que já está no buffer
