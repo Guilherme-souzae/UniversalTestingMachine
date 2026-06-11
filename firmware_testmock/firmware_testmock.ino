@@ -164,7 +164,16 @@ void halt()
 
 void readLoad()
 {
-  Serial.print(100);
+    static float t = 0.0f;
+
+    float valor =
+        100.0f +
+        50.0f * sin(t) +
+        10.0f * sin(5.0f * t);
+
+    Serial.println(valor);
+
+    t += 0.05f;
 }
 
 // --- LEDS DE TESTE

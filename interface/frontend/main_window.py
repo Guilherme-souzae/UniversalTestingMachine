@@ -41,6 +41,9 @@ class MainWindow(QWidget):
 
         # Conexão de sinais
 
+        # Dados do ensaio → gráfico
+        self.controller.data_received.connect(self._on_data_received)
+
         # Botão de emergência
         self.emergency_widget.emergency_clicked.connect(self.controller.disconect)
 
@@ -53,6 +56,11 @@ class MainWindow(QWidget):
         self.test_tab.test_widget.start_clicked.connect(self.controller.start)
         self.test_tab.test_widget.pause_clicked.connect(self.controller.pause)
         self.test_tab.test_widget.reset_clicked.connect(self.controller.reset)
+        self.test_tab.test_widget.reset_clicked.connect(self.test_tab.force_graph.clear)
 
         # Conexão serial
         self.conf_tab.connection_widget.connect_requested.connect(self.controller.link)
+
+    def _on_data_received(self, valor: float):
+        n = len(self.test_tab.force_graph.x_data)
+        self.test_tab.force_graph.add_point(n, valor)
