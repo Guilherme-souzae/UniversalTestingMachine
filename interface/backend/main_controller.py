@@ -19,6 +19,8 @@ class MainController(QObject):
     # ── conexão / desconexão ──────────────────────────────
 
     def link(self):
+        self.serial_bridge.conectar()
+
         if self.serial_bridge.conectado():
             print("LOG: Conexão estabelecida!")
         else:

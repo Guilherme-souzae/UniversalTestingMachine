@@ -72,9 +72,44 @@ class SerialBridge:
             and self.arduino.is_open
         )
 
+    def conectar(self):
+        if self.arduino:
+            try:
+                self.arduino.close()
+            except:
+                pass
+
+        porta = self._encontrar_arduino()
+
+        if porta is None:
+            print("WARNING: Arduino não encontrado")
+            self.arduino = None
+            return False
+
+        try:
+            self.arduino = serial.Serial(
+                porta,
+                self.BAUDRATE,
+                timeout=0
+            )
+
+            print(
+                f"LOG: Arduino conectado em {porta}"
+            )
+
+            return True
+
+        except serial.SerialException as e:
+            print(
+                f"WARNING: Erro ao conectar: {e}"
+            )
+            self.arduino = None
+            return False
+
     def fechar_serial(self):
         if self.conectado():
             self.arduino.close()
+            self.arduino = None
 
     def enviar_comando(self, comando):
         if self.conectado():

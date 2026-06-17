@@ -1,4 +1,4 @@
-// Leds de teste
+// Pinos de teste
 #define C_RED 3
 #define C_GREEN 4
 #define C_BLUE 5
@@ -7,6 +7,7 @@
 #define E_BLUE 8
 #define M_CCLOCKWISE 9
 #define M_CLOCKWISE 10
+#define C_ACK 11
 #define B_INTERRUPT 2
 
 // Comandos
@@ -54,7 +55,30 @@ void setup()
   pinMode(E_BLUE, OUTPUT);
   pinMode(M_CCLOCKWISE, OUTPUT);
   pinMode(M_CLOCKWISE, OUTPUT);
+  pinMode(C_ACK, OUTPUT);
   pinMode(B_INTERRUPT, INPUT);
+
+  digitalWrite(C_RED, HIGH);
+  digitalWrite(C_GREEN, HIGH);
+  digitalWrite(C_BLUE, HIGH);
+  digitalWrite(E_RED, HIGH);
+  digitalWrite(E_GREEN, HIGH);
+  digitalWrite(E_BLUE, HIGH);
+  digitalWrite(M_CCLOCKWISE, HIGH);
+  digitalWrite(M_CLOCKWISE, HIGH);
+  digitalWrite(C_ACK, HIGH);
+
+  delay(1000);
+
+  digitalWrite(C_RED, LOW);
+  digitalWrite(C_GREEN, LOW);
+  digitalWrite(C_BLUE, LOW);
+  digitalWrite(E_RED, LOW);
+  digitalWrite(E_GREEN, LOW);
+  digitalWrite(E_BLUE, LOW);
+  digitalWrite(M_CCLOCKWISE, LOW);
+  digitalWrite(M_CLOCKWISE, LOW);
+  digitalWrite(C_ACK, LOW);
 
   // Atribuir Interrupção
   attachInterrupt(digitalPinToInterrupt(B_INTERRUPT), emergenciaISR, FALLING);
