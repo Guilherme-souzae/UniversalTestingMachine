@@ -7,7 +7,6 @@
 #define E_BLUE 8
 #define M_CCLOCKWISE 9
 #define M_CLOCKWISE 10
-#define C_ACK 11
 #define B_INTERRUPT 2
 
 // Comandos
@@ -66,7 +65,6 @@ void setup()
   digitalWrite(E_BLUE, HIGH);
   digitalWrite(M_CCLOCKWISE, HIGH);
   digitalWrite(M_CLOCKWISE, HIGH);
-  digitalWrite(C_ACK, HIGH);
 
   delay(1000);
 
@@ -78,7 +76,6 @@ void setup()
   digitalWrite(E_BLUE, LOW);
   digitalWrite(M_CCLOCKWISE, LOW);
   digitalWrite(M_CLOCKWISE, LOW);
-  digitalWrite(C_ACK, LOW);
 
   // Atribuir Interrupção
   attachInterrupt(digitalPinToInterrupt(B_INTERRUPT), emergenciaISR, FALLING);
