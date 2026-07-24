@@ -1,6 +1,6 @@
 from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 from backend.serial_bridge import Comando, SerialBridge
-
+from backend.firmware_configuration_entity import FirmwareConfiguration
 
 class MainController(QObject):
 
@@ -10,6 +10,7 @@ class MainController(QObject):
 
     def __init__(self):
         super().__init__()
+        self.firmware_configuration = FirmwareConfiguration()
         self.serial_bridge = SerialBridge()
 
         self._timer = QTimer(self)
@@ -56,6 +57,15 @@ class MainController(QObject):
     def reset(self):
         self._timer.stop()
         self.serial_bridge.enviar_comando(Comando.PARAR)
+
+    # ── envio de configurações ────────────────────────────
+
+    def set_speed_configuracao(self, speed):
+        self.firmware_configuration.speed = speed
+        self._enviar_configuracao_callback()
+
+    def _enviar_configuracao_callback(self):
+        self.serial_bridge.enviar_comando(Comando.CONFIGURAR, self.firmware_configuration)
 
     # ── slot privado do timer ─────────────────────────────
 

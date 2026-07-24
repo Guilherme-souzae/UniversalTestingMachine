@@ -1,36 +1,113 @@
-// Pinos de teste
-#define C_RED 3
-#define C_GREEN 4
-#define C_BLUE 5
-#define E_RED 6
-#define E_GREEN 7
-#define E_BLUE 8
-#define M_CCLOCKWISE 9
-#define M_CLOCKWISE 10
-#define B_INTERRUPT 2
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7735.h>
+#include <ArduinoJson.h>
+
+// --- Display LCD (Adafruit ST7735)
+#define TFT_CS   5
+#define TFT_DC   2
+#define TFT_RST  4
+// SCK = GPIO18 e MOSI = GPIO23 são fixos (SPI de hardware do ESP32)
+
+Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
+
+// --- Botão de emergência
+#define B_INTERRUPT 33
 
 // Comandos
-#define C_SUBIR 0
-#define C_DESCER 1
-#define C_PARAR 2
-#define C_RESET 3
-#define C_ENSAIO 4
-#define C_R_ENSAIO 5
+#define C_SUBIR    "SUBIR"
+#define C_DESCER   "DESCER"
+#define C_PARAR    "PARAR"
+#define C_RESET    "RESET"
+#define C_ENSAIO   "ENSAIO"
+#define C_CONFIG   "CONFIGURAR"
 
 // Estados
-#define E_IDLE 0
-#define E_SUBINDO 1
+#define E_IDLE     0
+#define E_SUBINDO  1
 #define E_DESCENDO 2
-#define E_ENSAIO 3
-
+#define E_ENSAIO   3
 
 // Globais
 unsigned long ensaioInterval = 50;
-unsigned long ledSpinInterval = 50;
-unsigned long ledSpinBuffer = 0;
-bool ledSpinState = false;
 unsigned long timeBuffer = 0;
 volatile unsigned int short state = 0;
+byte lastCommand = 255; // força a primeira atualização de tela
+
+// --- Auxiliares de texto para o display
+const char* nomeComando(byte cmd)
+{
+  switch (cmd)
+  {
+    case C_SUBIR:    return "SUBIR";
+    case C_DESCER:   return "DESCER";
+    case C_PARAR:    return "PARAR";
+    case C_RESET:    return "RESET";
+    case C_ENSAIO:   return "ENSAIO";
+    case C_R_ENSAIO: return "R.ENSAIO";
+    default:         return "-";
+  }
+}
+
+const char* nomeEstado(unsigned int st)
+{
+  switch (st)
+  {
+    case E_IDLE:     return "PARADO";
+    case E_SUBINDO:  return "SUBINDO";
+    case E_DESCENDO: return "DESCENDO";
+    case E_ENSAIO:   return "ENSAIO";
+    default:         return "-";
+  }
+}
+
+// Redesenha a tela inteira (usado ao trocar de comando/estado)
+void desenhaTela(byte cmd, unsigned int st)
+{
+  tft.fillScreen(ST7735_BLACK);
+
+  tft.setTextColor(ST7735_WHITE);
+  tft.setTextSize(1);
+  tft.setCursor(5, 5);
+  tft.print("Comando:");
+
+  tft.setTextColor(ST7735_YELLOW);
+  tft.setTextSize(2);
+  tft.setCursor(5, 15);
+  tft.print(nomeComando(cmd));
+
+  tft.setTextColor(ST7735_WHITE);
+  tft.setTextSize(1);
+  tft.setCursor(5, 45);
+  tft.print("Estado:");
+
+  tft.setTextColor(corDoEstado(st));
+  tft.setTextSize(2);
+  tft.setCursor(5, 55);
+  tft.print(nomeEstado(st));
+}
+
+uint16_t corDoEstado(unsigned int st)
+{
+  switch (st)
+  {
+    case E_IDLE:     return ST7735_WHITE;
+    case E_SUBINDO:  return ST7735_RED;
+    case E_DESCENDO: return ST7735_GREEN;
+    case E_ENSAIO:   return ST7735_CYAN;
+    default:         return ST7735_WHITE;
+  }
+}
+
+// Atualiza só a área do "Estado" (chamado a cada troca de estado, sem redesenhar tudo)
+void atualizaEstadoNaTela(unsigned int st)
+{
+  tft.fillRect(5, 55, 150, 16, ST7735_BLACK);
+  tft.setTextColor(corDoEstado(st));
+  tft.setTextSize(2);
+  tft.setCursor(5, 55);
+  tft.print(nomeEstado(st));
+}
 
 // --- EMERGENCIA
 void emergenciaISR()
@@ -42,43 +119,14 @@ void emergenciaISR()
 // --- SETUP
 void setup()
 {
-  // Iniciação
   Serial.begin(9600);
 
-  // Pinagem
-  pinMode(C_RED, OUTPUT);
-  pinMode(C_GREEN, OUTPUT);
-  pinMode(C_BLUE, OUTPUT);
-  pinMode(E_RED, OUTPUT);
-  pinMode(E_GREEN, OUTPUT);
-  pinMode(E_BLUE, OUTPUT);
-  pinMode(M_CCLOCKWISE, OUTPUT);
-  pinMode(M_CLOCKWISE, OUTPUT);
-  pinMode(C_ACK, OUTPUT);
-  pinMode(B_INTERRUPT, INPUT);
-
-  digitalWrite(C_RED, HIGH);
-  digitalWrite(C_GREEN, HIGH);
-  digitalWrite(C_BLUE, HIGH);
-  digitalWrite(E_RED, HIGH);
-  digitalWrite(E_GREEN, HIGH);
-  digitalWrite(E_BLUE, HIGH);
-  digitalWrite(M_CCLOCKWISE, HIGH);
-  digitalWrite(M_CLOCKWISE, HIGH);
+  // Display
+  tft.initR(INITR_BLACKTAB); // troque para INITR_GREENTAB se as cores saírem deslocadas
+  tft.setRotation(2);
+  desenhaTela(255, state);
 
   delay(1000);
-
-  digitalWrite(C_RED, LOW);
-  digitalWrite(C_GREEN, LOW);
-  digitalWrite(C_BLUE, LOW);
-  digitalWrite(E_RED, LOW);
-  digitalWrite(E_GREEN, LOW);
-  digitalWrite(E_BLUE, LOW);
-  digitalWrite(M_CCLOCKWISE, LOW);
-  digitalWrite(M_CLOCKWISE, LOW);
-
-  // Atribuir Interrupção
-  attachInterrupt(digitalPinToInterrupt(B_INTERRUPT), emergenciaISR, FALLING);
 }
 
 // --- LOOP PRINCIPAL
@@ -86,19 +134,33 @@ void loop()
 {
   if (Serial.available())
   {
-    byte cmd = Serial.read();
-    runCommand(cmd);
-    ledComands(cmd);
+    // decodificar Json
+    StaticJsonDocument<256> doc;
+    DeserializationError ermac = deserializeJson(doc, Serial);
+
+    if (ermac == false)
+    {
+      const char* cmd = doc["comando"]
+
+      runCommand(cmd);
+
+      if (cmd != lastCommand)
+      {
+        desenhaTela(cmd, state);
+        lastCommand = cmd;
+      } 
+    }
   }
 
   runState();
-  ledStates();
 }
 
 // --- PROCESSAMENTO DE COMANDOS
 void runCommand(byte commando)
 {
-  switch (commando) 
+  unsigned int estadoAnterior = state;
+
+  switch (commando)
   {
     case C_SUBIR:
       state = E_SUBINDO;
@@ -107,7 +169,7 @@ void runCommand(byte commando)
     case C_DESCER:
       state = E_DESCENDO;
       break;
-    
+
     case C_PARAR:
       state = E_IDLE;
       halt();
@@ -120,8 +182,11 @@ void runCommand(byte commando)
     case C_R_ENSAIO:
       state = E_IDLE;
       halt();
-      break; 
+      break;
   }
+
+  if (state != estadoAnterior)
+    atualizaEstadoNaTela(state);
 }
 
 // --- PROCESSAMENTO DE ESTADOS
@@ -166,21 +231,15 @@ void spin(bool clockwise)
 
     if (clockwise)
     {
-      digitalWrite(M_CLOCKWISE, ledSpinState);
-      digitalWrite(M_CCLOCKWISE, LOW);
+      srDigitalWrite(M_CLOCKWISE, ledSpinState);
+      srDigitalWrite(M_CCLOCKWISE, LOW);
     }
     else
     {
-      digitalWrite(M_CLOCKWISE, LOW);
-      digitalWrite(M_CCLOCKWISE, ledSpinState);
+      srDigitalWrite(M_CLOCKWISE, LOW);
+      srDigitalWrite(M_CCLOCKWISE, ledSpinState);
     }
   }
-}
-
-void halt()
-{
-  digitalWrite(M_CLOCKWISE, LOW);
-  digitalWrite(M_CCLOCKWISE, LOW);
 }
 
 void readLoad()
@@ -195,71 +254,4 @@ void readLoad()
     Serial.println(valor);
 
     t += 0.05f;
-}
-
-// --- LEDS DE TESTE
-void ledComands(byte commando)
-{
-  switch (commando) 
-  {
-    case C_PARAR:
-      digitalWrite(C_RED, LOW);
-      digitalWrite(C_GREEN, LOW);
-      digitalWrite(C_BLUE, LOW);
-      break;
-
-    case C_SUBIR:
-      digitalWrite(C_RED, HIGH);
-      digitalWrite(C_GREEN, LOW);
-      digitalWrite(C_BLUE, LOW);
-      break;
-
-    case C_DESCER:
-      digitalWrite(C_RED, LOW);
-      digitalWrite(C_GREEN, HIGH);
-      digitalWrite(C_BLUE, LOW);
-      break;
-
-    case C_ENSAIO:
-      digitalWrite(C_RED, HIGH);
-      digitalWrite(C_GREEN, HIGH);
-      digitalWrite(C_BLUE, LOW);
-      break;
-
-    case C_R_ENSAIO:
-      digitalWrite(C_RED, LOW);
-      digitalWrite(C_GREEN, LOW);
-      digitalWrite(C_BLUE, HIGH);
-      break; 
-  }
-}
-
-void ledStates()
-{
-  switch (state) 
-  {
-    case E_IDLE:
-      digitalWrite(E_RED, LOW);
-      digitalWrite(E_GREEN, LOW);
-      digitalWrite(E_BLUE, LOW);
-      break;
-
-    case E_SUBINDO:
-      digitalWrite(E_RED, HIGH);
-      digitalWrite(E_GREEN, LOW);
-      digitalWrite(E_BLUE, LOW);
-      break;
-
-    case E_DESCENDO:
-      digitalWrite(E_RED, LOW);
-      digitalWrite(E_GREEN, HIGH);
-      digitalWrite(E_BLUE, LOW);
-      break;
-    
-    case E_ENSAIO:
-      digitalWrite(E_RED, HIGH);
-      digitalWrite(E_GREEN, HIGH);
-      digitalWrite(E_BLUE, HIGH);
-      break;
-  }
 }
