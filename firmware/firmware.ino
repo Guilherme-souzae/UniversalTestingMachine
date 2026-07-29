@@ -3,18 +3,17 @@
 
 // ── Pinos - Botão de emergência ────────────────────────
 // ── NÃO ALTERAR, Pino 2 reservado para interrupções ────
-#define EMERG_PIN 2
 
 // ── Pinos - Motor de passo ─────────────────────────────
 #define DIR_PIN   3
 #define STEP_PIN  4
 
 // ── Pinos - Célula de carga ────────────────────────────
-#define DOUT_PIN  5
-#define CLK_PIN   6
+#define CLK_PIN  5
+#define DOUT_PIN   6
 
 // ── Configs ────────────────────────────────────────────
-#define STEP_INTERVAL_US  1000UL
+#define STEP_INTERVAL_US  250UL
 #define ENSAIO_INTERVAL   50
 #define TIMEOUT_SENSOR    5000
 const float fator_calibracao = 420.0;
@@ -36,19 +35,13 @@ bool motorDir = true;
 
 // -------------------------------------------------------
 
-void emergencyISR()
-{
-  state = E_IDLE;
-  halt();
-}
-
 void setup()
 {
   Serial.begin(9600);
+  Serial.print("boot");
 
   pinMode(DIR_PIN, OUTPUT);
   pinMode(STEP_PIN, OUTPUT);
-  pinMode(EMERG_PIN, INPUT);
 
   scale.begin(DOUT_PIN, CLK_PIN);
 
@@ -68,11 +61,6 @@ void setup()
 
   scale.set_scale(fator_calibracao);
   scale.tare(10);
-
-  attachInterrupt(
-      digitalPinToInterrupt(EMERG_PIN),
-      emergencyISR,
-      FALLING);
 }
 
 void loop()
@@ -132,7 +120,7 @@ void runCommand(JsonDocument &doc)
 
   else if (strcmp(comando, "ENSAIO") == 0)
   {
-    motorDir = true;
+    motorDir = false;
     state = E_ENSAIO;
     timeBuffer = millis();
   }
