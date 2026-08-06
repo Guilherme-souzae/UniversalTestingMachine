@@ -10,10 +10,10 @@
 
 // ── Pinos - Célula de carga ────────────────────────────
 #define CLK_PIN  5
-#define DOUT_PIN   6
+#define DOUT_PIN 6
 
 // ── Configs ────────────────────────────────────────────
-#define STEP_INTERVAL_US  250UL
+#define STEP_INTERVAL_US  350UL
 #define ENSAIO_INTERVAL   50
 #define TIMEOUT_SENSOR    5000
 const float fator_calibracao = 420.0;
