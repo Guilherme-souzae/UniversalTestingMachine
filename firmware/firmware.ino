@@ -14,7 +14,7 @@
 
 // ── Configs ────────────────────────────────────────────
 #define STEP_INTERVAL_US  350UL
-#define ENSAIO_INTERVAL   50
+#define ENSAIO_INTERVAL   20
 #define TIMEOUT_SENSOR    5000
 const float fator_calibracao = 420.0;
 

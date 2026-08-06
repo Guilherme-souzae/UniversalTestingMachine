@@ -15,7 +15,7 @@ class Comando(str, Enum):
 
 class SerialBridge:
 
-    BAUDRATE = 9600
+    BAUDRATE = 115200
 
     def __init__(self):
         self.arduino = None

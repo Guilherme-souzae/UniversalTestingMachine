@@ -62,6 +62,8 @@ class MainWindow(QWidget):
         # Conexão serial
         self.conf_tab.connection_widget.connect_requested.connect(self.controller.link)
 
-    def _on_data_received(self, valor: float):
-        n = len(self.test_tab.force_graph.x_data)
-        self.test_tab.force_graph.add_point(n, valor)
+    def _on_data_received(self, force: float):
+        x = self.controller.VELOCIDADE_LINEAR
+        stress = force / self.controller.AREA_JUMPER
+        self.test_tab.force_graph.add_point(x, force)
+        self.test_tab.stress_graph.add_point(x, stress)
