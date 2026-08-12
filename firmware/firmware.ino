@@ -3,6 +3,7 @@
 
 // ── Pinos - Botão de emergência ────────────────────────
 // ── NÃO ALTERAR, Pino 2 reservado para interrupções ────
+#define EMERGENCIA_BTN 2
 
 // ── Pinos - Motor de passo ─────────────────────────────
 #define DIR_PIN   3
@@ -38,10 +39,12 @@ bool motorDir = true;
 void setup()
 {
   Serial.begin(9600);
-  Serial.print("boot");
 
   pinMode(DIR_PIN, OUTPUT);
   pinMode(STEP_PIN, OUTPUT);
+  pinMode(EMERGENCIA_BTN, INPUT_PULLUP);
+
+  attachInterrupt(digitalPinToInterrupt(EMERGENCIA_BTN),[]() {state = E_IDLE; runState();},FALLING);
 
   scale.begin(DOUT_PIN, CLK_PIN);
 

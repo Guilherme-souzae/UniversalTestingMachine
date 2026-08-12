@@ -6,7 +6,10 @@ class MainController(QObject):
 
     data_received = pyqtSignal(float)
 
-    POLL_INTERVAL_MS = 20
+    INTERVALO_LEITURA = 20 #MS
+    VELOCIDADE_LINEAR = 0.1 # M/S
+    AREA_CORPO = 0.1 # M^2
+    COMPRIMENTO_CORPO = 0.3
 
     def __init__(self):
         super().__init__()
@@ -14,7 +17,7 @@ class MainController(QObject):
         self.serial_bridge = SerialBridge()
 
         self._timer = QTimer(self)
-        self._timer.setInterval(self.POLL_INTERVAL_MS)
+        self._timer.setInterval(self.INTERVALO_LEITURA)
         self._timer.timeout.connect(self._poll_serial)
 
     # ── conexão / desconexão ──────────────────────────────

@@ -58,10 +58,14 @@ class MainWindow(QWidget):
         self.test_tab.test_widget.pause_clicked.connect(self.controller.pause)
         self.test_tab.test_widget.reset_clicked.connect(self.controller.reset)
         self.test_tab.test_widget.reset_clicked.connect(self.test_tab.force_graph.clear)
+        self.test_tab.test_widget.reset_clicked.connect(self.test_tab.stress_graph.clear)
 
         # Conexão serial
         self.conf_tab.connection_widget.connect_requested.connect(self.controller.link)
 
-    def _on_data_received(self, valor: float):
-        n = len(self.test_tab.force_graph.x_data)
-        self.test_tab.force_graph.add_point(n, valor)
+    def _on_data_received(self, force: float):
+        x = self.controller.VELOCIDADE_LINEAR
+        epsilon = x / self.controller.COMPRIMENTO_CORPO
+        sigma = force / self.controller.AREA_CORPO
+        self.test_tab.force_graph.add_point(x, force)
+        self.test_tab.stress_graph.add_point(epsilon, sigma)

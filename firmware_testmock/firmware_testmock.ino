@@ -1,257 +1,195 @@
-#include <SPI.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_ST7735.h>
+#include "HX711.h"
 #include <ArduinoJson.h>
 
-// --- Display LCD (Adafruit ST7735)
-#define TFT_CS   5
-#define TFT_DC   2
-#define TFT_RST  4
-// SCK = GPIO18 e MOSI = GPIO23 são fixos (SPI de hardware do ESP32)
+// ── Pinos - Botão de emergência ────────────────────────
+// ── NÃO ALTERAR, Pino 2 reservado para interrupções ────
 
-Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
+// ── Pinos - Motor de passo ─────────────────────────────
+#define DIR_PIN   3
+#define STEP_PIN  4
 
-// --- Botão de emergência
-#define B_INTERRUPT 33
+// ── Pinos - Célula de carga ────────────────────────────
+#define CLK_PIN  5
+#define DOUT_PIN 6
 
-// Comandos
-#define C_SUBIR    "SUBIR"
-#define C_DESCER   "DESCER"
-#define C_PARAR    "PARAR"
-#define C_RESET    "RESET"
-#define C_ENSAIO   "ENSAIO"
-#define C_CONFIG   "CONFIGURAR"
+// ── Configs ────────────────────────────────────────────
+#define STEP_INTERVAL_US  350UL
+#define ENSAIO_INTERVAL   50
+#define TIMEOUT_SENSOR    5000
+const float fator_calibracao = 420.0;
 
-// Estados
+// ── Estados ────────────────────────────────────────────
 #define E_IDLE     0
 #define E_SUBINDO  1
 #define E_DESCENDO 2
 #define E_ENSAIO   3
 
-// Globais
-unsigned long ensaioInterval = 50;
+HX711 scale;
+volatile unsigned short int state = E_IDLE;
+
 unsigned long timeBuffer = 0;
-volatile unsigned int short state = 0;
-byte lastCommand = 255; // força a primeira atualização de tela
 
-// --- Auxiliares de texto para o display
-const char* nomeComando(byte cmd)
-{
-  switch (cmd)
-  {
-    case C_SUBIR:    return "SUBIR";
-    case C_DESCER:   return "DESCER";
-    case C_PARAR:    return "PARAR";
-    case C_RESET:    return "RESET";
-    case C_ENSAIO:   return "ENSAIO";
-    case C_R_ENSAIO: return "R.ENSAIO";
-    default:         return "-";
-  }
-}
+bool stepState = false;
+unsigned long lastStepUs = 0;
+bool motorDir = true;
 
-const char* nomeEstado(unsigned int st)
-{
-  switch (st)
-  {
-    case E_IDLE:     return "PARADO";
-    case E_SUBINDO:  return "SUBINDO";
-    case E_DESCENDO: return "DESCENDO";
-    case E_ENSAIO:   return "ENSAIO";
-    default:         return "-";
-  }
-}
+// -------------------------------------------------------
 
-// Redesenha a tela inteira (usado ao trocar de comando/estado)
-void desenhaTela(byte cmd, unsigned int st)
-{
-  tft.fillScreen(ST7735_BLACK);
-
-  tft.setTextColor(ST7735_WHITE);
-  tft.setTextSize(1);
-  tft.setCursor(5, 5);
-  tft.print("Comando:");
-
-  tft.setTextColor(ST7735_YELLOW);
-  tft.setTextSize(2);
-  tft.setCursor(5, 15);
-  tft.print(nomeComando(cmd));
-
-  tft.setTextColor(ST7735_WHITE);
-  tft.setTextSize(1);
-  tft.setCursor(5, 45);
-  tft.print("Estado:");
-
-  tft.setTextColor(corDoEstado(st));
-  tft.setTextSize(2);
-  tft.setCursor(5, 55);
-  tft.print(nomeEstado(st));
-}
-
-uint16_t corDoEstado(unsigned int st)
-{
-  switch (st)
-  {
-    case E_IDLE:     return ST7735_WHITE;
-    case E_SUBINDO:  return ST7735_RED;
-    case E_DESCENDO: return ST7735_GREEN;
-    case E_ENSAIO:   return ST7735_CYAN;
-    default:         return ST7735_WHITE;
-  }
-}
-
-// Atualiza só a área do "Estado" (chamado a cada troca de estado, sem redesenhar tudo)
-void atualizaEstadoNaTela(unsigned int st)
-{
-  tft.fillRect(5, 55, 150, 16, ST7735_BLACK);
-  tft.setTextColor(corDoEstado(st));
-  tft.setTextSize(2);
-  tft.setCursor(5, 55);
-  tft.print(nomeEstado(st));
-}
-
-// --- EMERGENCIA
-void emergenciaISR()
-{
-  state = E_IDLE;
-  halt();
-}
-
-// --- SETUP
 void setup()
 {
   Serial.begin(9600);
 
-  // Display
-  tft.initR(INITR_BLACKTAB); // troque para INITR_GREENTAB se as cores saírem deslocadas
-  tft.setRotation(2);
-  desenhaTela(255, state);
+  pinMode(DIR_PIN, OUTPUT);
+  pinMode(STEP_PIN, OUTPUT);
 
-  delay(1000);
+  unsigned long t = millis();
 }
 
-// --- LOOP PRINCIPAL
 void loop()
 {
   if (Serial.available())
   {
-    // decodificar Json
-    StaticJsonDocument<256> doc;
-    DeserializationError ermac = deserializeJson(doc, Serial);
+    String linha = Serial.readStringUntil('\n');
 
-    if (ermac == false)
+    JsonDocument doc;
+
+    DeserializationError erro =
+        deserializeJson(doc, linha);
+
+    if (!erro)
     {
-      const char* cmd = doc["comando"]
-
-      runCommand(cmd);
-
-      if (cmd != lastCommand)
-      {
-        desenhaTela(cmd, state);
-        lastCommand = cmd;
-      } 
+      runCommand(doc);
     }
   }
 
   runState();
 }
 
-// --- PROCESSAMENTO DE COMANDOS
-void runCommand(byte commando)
+// -------------------------------------------------------
+// COMANDOS
+// -------------------------------------------------------
+
+void runCommand(JsonDocument &doc)
 {
-  unsigned int estadoAnterior = state;
+  const char *comando = doc["comando"];
 
-  switch (commando)
+  if (comando == nullptr)
+    return;
+
+  if (strcmp(comando, "SUBIR") == 0)
   {
-    case C_SUBIR:
-      state = E_SUBINDO;
-      break;
-
-    case C_DESCER:
-      state = E_DESCENDO;
-      break;
-
-    case C_PARAR:
-      state = E_IDLE;
-      halt();
-      break;
-
-    case C_ENSAIO:
-      state = E_ENSAIO;
-      break;
-
-    case C_R_ENSAIO:
-      state = E_IDLE;
-      halt();
-      break;
+    motorDir = true;
+    state = E_SUBINDO;
   }
 
-  if (state != estadoAnterior)
-    atualizaEstadoNaTela(state);
+  else if (strcmp(comando, "DESCER") == 0)
+  {
+    motorDir = false;
+    state = E_DESCENDO;
+  }
+
+  else if (strcmp(comando, "PARAR") == 0)
+  {
+    state = E_IDLE;
+    halt();
+  }
+
+  else if (strcmp(comando, "RESET") == 0)
+  {
+    state = E_IDLE;
+    halt();
+  }
+
+  else if (strcmp(comando, "ENSAIO") == 0)
+  {
+    motorDir = false;
+    state = E_ENSAIO;
+    timeBuffer = millis();
+  }
+
+  else if (strcmp(comando, "CONFIGURAR") == 0)
+  {
+    if (doc["payload"].is<JsonObject>())
+    {
+      readPayload(doc["payload"]);
+    }
+  }
 }
 
-// --- PROCESSAMENTO DE ESTADOS
+void readPayload(JsonObject payload)
+{
+  // Implementar posteriormente
+}
+
+// -------------------------------------------------------
+// ESTADOS
+// -------------------------------------------------------
+
 void runState()
 {
   switch (state)
   {
-    case E_SUBINDO:
-      spin(true);
-      break;
+  case E_SUBINDO:
+    spin();
+    break;
 
-    case E_DESCENDO:
-      spin(false);
-      break;
+  case E_DESCENDO:
+    spin();
+    break;
 
-    case E_ENSAIO:
-      runEnsaio();
-      break;
+  case E_ENSAIO:
+    runEnsaio();
+    break;
   }
 }
 
-// --- FUNÇÕES
+// -------------------------------------------------------
+// MOTOR
+// -------------------------------------------------------
+
 void runEnsaio()
 {
+  spin();
+
   unsigned long now = millis();
-  if (now - timeBuffer >= ensaioInterval)
+
+  if (now - timeBuffer >= ENSAIO_INTERVAL)
   {
     timeBuffer = now;
-    spin(true);
     readLoad();
   }
 }
 
-void spin(bool clockwise)
+void spin()
 {
-  unsigned long now = millis();
+  digitalWrite(DIR_PIN, motorDir ? HIGH : LOW);
 
-  if (now - ledSpinBuffer >= ledSpinInterval)
-  {
-    ledSpinBuffer = now;
-    ledSpinState = !ledSpinState;
+  unsigned long now = micros();
 
-    if (clockwise)
-    {
-      srDigitalWrite(M_CLOCKWISE, ledSpinState);
-      srDigitalWrite(M_CCLOCKWISE, LOW);
-    }
-    else
-    {
-      srDigitalWrite(M_CLOCKWISE, LOW);
-      srDigitalWrite(M_CCLOCKWISE, ledSpinState);
-    }
-  }
+  if (now - lastStepUs < STEP_INTERVAL_US)
+    return;
+
+  lastStepUs = now;
+
+  stepState = !stepState;
+
+  digitalWrite(STEP_PIN, stepState);
 }
+
+void halt()
+{
+  stepState = false;
+  digitalWrite(STEP_PIN, LOW);
+}
+
+// -------------------------------------------------------
+// HX711
+// -------------------------------------------------------
 
 void readLoad()
 {
-    static float t = 0.0f;
+  float peso = timeBuffer * 0.01;
+  peso = sin(peso);
 
-    float valor =
-        100.0f +
-        50.0f * sin(t) +
-        10.0f * sin(5.0f * t);
-
-    Serial.println(valor);
-
-    t += 0.05f;
+  Serial.println(peso);
 }

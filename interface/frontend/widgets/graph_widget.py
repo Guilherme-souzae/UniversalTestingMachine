@@ -9,6 +9,9 @@ class GraphWidget(QWidget):
         self.x_data = []
         self.y_data = []
 
+        self.x_data.append(0)
+        self.y_data.append(0)
+
         self.graph = pg.PlotWidget()
         self.graph.setTitle(title)
 
@@ -23,10 +26,16 @@ class GraphWidget(QWidget):
         self.x_data.clear()
         self.y_data.clear()
 
+        self.x_data.append(0)
+        self.y_data.append(0)
+
         self.curve.setData([], [])
 
     def add_point(self, x, y):
-        self.x_data.append(x)
+        x1 = self.x_data[-1]
+        x2 = x + x1
+
+        self.x_data.append(x2)
         self.y_data.append(y)
 
         self.update_plot()
