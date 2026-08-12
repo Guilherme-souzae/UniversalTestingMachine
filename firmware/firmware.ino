@@ -17,7 +17,7 @@
 #define STEP_INTERVAL_US  350UL
 #define ENSAIO_INTERVAL   50
 #define TIMEOUT_SENSOR    5000
-const float fator_calibracao = 420.0;
+const float fator_calibracao = 23.0;
 
 // ── Estados ────────────────────────────────────────────
 #define E_IDLE     0
@@ -118,6 +118,7 @@ void runCommand(JsonDocument &doc)
   else if (strcmp(comando, "RESET") == 0)
   {
     state = E_IDLE;
+    scale.tare(10);
     halt();
   }
 
