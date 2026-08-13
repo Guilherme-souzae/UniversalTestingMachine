@@ -22,8 +22,8 @@ class ManualWidget(QWidget):
 
         group = QGroupBox("Controle Manual")
 
-        self.btn_up = QPushButton("▲ SUBIR")
-        self.btn_down = QPushButton("▼ DESCER")
+        self.btn_up = QPushButton("▲ FRENTE")
+        self.btn_down = QPushButton("▼ TRAS")
 
         self.btn_up.setObjectName("upButton")
         self.btn_down.setObjectName("downButton")

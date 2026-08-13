@@ -14,7 +14,7 @@
 #define DOUT_PIN 6
 
 // ── Configs ────────────────────────────────────────────
-#define STEP_INTERVAL_US  350UL
+#define STEP_INTERVAL_US  200UL
 #define ENSAIO_INTERVAL   50
 #define TIMEOUT_SENSOR    5000
 const float fator_calibracao = 23.0;
@@ -25,6 +25,7 @@ const float fator_calibracao = 23.0;
 #define E_DESCENDO 2
 #define E_ENSAIO   3
 
+// ── Globais ────────────────────────────────────────────
 HX711 scale;
 volatile unsigned short int state = E_IDLE;
 
@@ -33,6 +34,7 @@ unsigned long timeBuffer = 0;
 bool stepState = false;
 unsigned long lastStepUs = 0;
 bool motorDir = true;
+float ultimaLeitura = 0;
 
 // -------------------------------------------------------
 
@@ -210,10 +212,6 @@ void halt()
 
 void readLoad()
 {
-  if (!scale.is_ready())
-    return;
-
-  float peso = scale.get_units(1);
-
-  Serial.println(peso);
+  if (scale.is_ready()) ultimaLeitura = scale.get_units(1);
+  Serial.println(ultimaLeitura);
 }
