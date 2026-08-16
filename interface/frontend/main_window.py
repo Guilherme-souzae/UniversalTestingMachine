@@ -56,13 +56,17 @@ class MainWindow(QWidget):
         self.conf_tab.manual_widget.move_released.connect(self.controller.parar)
         self.conf_tab.manual_widget.value_changed.connect(self.controller.set_speed_configuracao)
 
-        #Controle de ensaio
+        # Controle de ensaio
         self.test_tab.test_widget.start_clicked.connect(self.controller.start)
         self.test_tab.test_widget.pause_clicked.connect(self.controller.pause)
         self.test_tab.test_widget.reset_clicked.connect(self.controller.reset)
         self.test_tab.test_widget.reset_clicked.connect(self.test_tab.force_graph.clear)
         self.test_tab.test_widget.reset_clicked.connect(self.test_tab.stress_graph.clear)
         self.test_tab.test_widget.start_clicked.connect(lambda: setattr(self, "tempo", time.perf_counter()))
+
+        # Controle de geometria
+        self.conf_tab.geometry_widget.comprimento_alterado.connect(self.controller.set_speed_configuracao)
+        self.conf_tab.geometry_widget.area_alterada.connect(self.controller.set_area_corpo)
 
         # Conexão serial
         self.conf_tab.connection_widget.connect_requested.connect(self.controller.link)

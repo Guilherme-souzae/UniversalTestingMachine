@@ -20,6 +20,14 @@ class MainController(QObject):
         self._timer.setInterval(self.INTERVALO_LEITURA)
         self._timer.timeout.connect(self._poll_serial)
 
+    # ── configurações ─────────────────────────────────────
+
+    def set_area_corpo(self, area_corpo):
+        self.AREA_CORPO = area_corpo
+
+    def set_comprimento_corpo(self, comprimento_corpo):
+        self.COMPRIMENTO_CORPO = comprimento_corpo
+
     # ── conexão / desconexão ──────────────────────────────
 
     def link(self):
