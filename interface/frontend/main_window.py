@@ -1,4 +1,4 @@
-from PyQt6.QtCore import pyqtSignal
+import time
 
 from PyQt6.QtWidgets import (
     QWidget,
@@ -17,6 +17,9 @@ class MainWindow(QWidget):
     def __init__(self, main_controller: MainController):
         super().__init__()
         self.controller = main_controller
+
+        # Variâveis globais
+        self.tempo = None
 
         # Montagem da interface
         self.setWindowTitle("Máquina de Ensaio")
@@ -59,13 +62,17 @@ class MainWindow(QWidget):
         self.test_tab.test_widget.reset_clicked.connect(self.controller.reset)
         self.test_tab.test_widget.reset_clicked.connect(self.test_tab.force_graph.clear)
         self.test_tab.test_widget.reset_clicked.connect(self.test_tab.stress_graph.clear)
+        self.test_tab.test_widget.start_clicked.connect(lambda: setattr(self, "tempo", time.perf_counter()))
 
         # Conexão serial
         self.conf_tab.connection_widget.connect_requested.connect(self.controller.link)
 
     def _on_data_received(self, force: float):
-        x = self.controller.VELOCIDADE_LINEAR
-        epsilon = x / self.controller.COMPRIMENTO_CORPO
+        dt = time.perf_counter() - self.tempo
+        ds = dt * self.controller.VELOCIDADE_LINEAR
+        self.tempo = time.perf_counter()
+
+        epsilon = ds / self.controller.COMPRIMENTO_CORPO
         sigma = force / self.controller.AREA_CORPO
-        self.test_tab.force_graph.add_point(x, force)
+        self.test_tab.force_graph.add_point(ds, force)
         self.test_tab.stress_graph.add_point(epsilon, sigma)
