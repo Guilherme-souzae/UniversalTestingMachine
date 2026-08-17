@@ -31,6 +31,7 @@ class SerialBridge:
                 or "ch340" in descricao
                 or "cp210" in descricao
                 or "usb serial" in descricao
+                or "usb single serial" in descricao
             ):
                 return porta.device
 

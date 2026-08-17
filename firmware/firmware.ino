@@ -35,7 +35,6 @@ unsigned long timeBuffer = 0;
 bool stepState = false;
 unsigned long lastStepUs = 0;
 bool motorDir = true;
-float ultimaLeitura = 0;
 
 bool estabilizado = true;
 unsigned long inicioEstabilizacao = 0;
@@ -231,6 +230,5 @@ void halt()
 
 void readLoad()
 {
-  if (scale.is_ready()) ultimaLeitura = scale.get_units(1);
-  Serial.println(ultimaLeitura);
+  if (scale.is_ready()) Serial.println(scale.get_units(1));
 }
