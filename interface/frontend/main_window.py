@@ -65,7 +65,7 @@ class MainWindow(QWidget):
         self.test_tab.test_widget.start_clicked.connect(lambda: setattr(self, "tempo", time.perf_counter()))
 
         # Controle de geometria
-        self.conf_tab.geometry_widget.comprimento_alterado.connect(self.controller.set_speed_configuracao)
+        self.conf_tab.geometry_widget.comprimento_alterado.connect(self.controller.set_comprimento_corpo)
         self.conf_tab.geometry_widget.area_alterada.connect(self.controller.set_area_corpo)
 
         # Conexão serial
@@ -80,3 +80,8 @@ class MainWindow(QWidget):
         sigma = force / self.controller.AREA_CORPO
         self.test_tab.force_graph.add_point(ds, force)
         self.test_tab.stress_graph.add_point(epsilon, sigma)
+
+        print(f"LOG: Deslocamento = {self.test_tab.force_graph.x_data[-1]}")
+        print(f"LOG: Força = {self.test_tab.force_graph.y_data[-1]}")
+        print(f"LOG: Deformação = {self.test_tab.stress_graph.x_data[-1]}")
+        print(f"LOG: Tensão = {self.test_tab.stress_graph.y_data[-1]}")

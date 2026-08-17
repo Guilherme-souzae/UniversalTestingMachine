@@ -7,9 +7,9 @@ class MainController(QObject):
     data_received = pyqtSignal(float)
 
     INTERVALO_LEITURA = 20 #MS
-    VELOCIDADE_LINEAR = 0.1 # M/S
-    AREA_CORPO = 0.1 # M^2
-    COMPRIMENTO_CORPO = 0.3
+    VELOCIDADE_LINEAR = 0.0104 # M/S
+    AREA_CORPO = 1 # M^2
+    COMPRIMENTO_CORPO = 1
 
     def __init__(self):
         super().__init__()
@@ -24,9 +24,11 @@ class MainController(QObject):
 
     def set_area_corpo(self, area_corpo):
         self.AREA_CORPO = area_corpo
+        print(f"LOG: Area do corpo de prova = {area_corpo} m^2")
 
     def set_comprimento_corpo(self, comprimento_corpo):
         self.COMPRIMENTO_CORPO = comprimento_corpo
+        print(f"LOG: Comprimento do corpo de prova = {comprimento_corpo} m")
 
     # ── conexão / desconexão ──────────────────────────────
 

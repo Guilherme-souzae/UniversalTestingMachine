@@ -18,8 +18,8 @@ class GeometryWidget(QWidget):
     # Sinais
     # =========================================================
 
-    comprimento_alterado = pyqtSignal(float)
-    area_alterada = pyqtSignal(float)
+    comprimento_alterado = pyqtSignal(float)  # metros
+    area_alterada = pyqtSignal(float)         # metros quadrados
 
     def __init__(self):
         super().__init__()
@@ -92,6 +92,7 @@ class GeometryWidget(QWidget):
         self.form_layout = QFormLayout()
 
         self.form_layout.addRow("Tipo:", self.combo_tipo)
+
         self.form_layout.addRow(
             self.label_comprimento,
             self.edit_comprimento
@@ -140,10 +141,12 @@ class GeometryWidget(QWidget):
 
     def _on_comprimento_changed(self, texto):
         try:
-            comprimento = float(texto)
+            comprimento_mm = float(texto)
 
-            if comprimento > 0:
-                self.comprimento_alterado.emit(comprimento)
+            if comprimento_mm > 0:
+                comprimento_m = comprimento_mm / 1000.0
+
+                self.comprimento_alterado.emit(comprimento_m)
 
         except ValueError:
             pass
@@ -179,28 +182,45 @@ class GeometryWidget(QWidget):
         return self.combo_tipo.currentText()
 
     def comprimento(self):
+        """
+        Retorna o comprimento em metros.
+        O campo de entrada é informado em mm.
+        """
+
         try:
-            return float(self.edit_comprimento.text())
+            comprimento_mm = float(
+                self.edit_comprimento.text()
+            )
+
+            return comprimento_mm / 1000.0
+
         except ValueError:
             return None
 
     def area_secao(self):
-        """Retorna a área da seção transversal em mm²."""
+        """
+        Retorna a área da seção transversal em m².
+
+        Os valores informados nos campos são em mm.
+        """
 
         try:
             if self.tipo_selecionado() == "Retangular":
 
-                base = float(self.edit_base.text())
-                altura = float(self.edit_altura.text())
+                base_mm = float(self.edit_base.text())
+                altura_mm = float(self.edit_altura.text())
 
-                return base * altura
+                area_mm2 = base_mm * altura_mm
 
             else:
 
-                diametro = float(self.edit_diametro.text())
-                raio = diametro / 2
+                diametro_mm = float(self.edit_diametro.text())
+                raio_mm = diametro_mm / 2.0
 
-                return math.pi * raio ** 2
+                area_mm2 = math.pi * raio_mm ** 2
+
+            # mm² -> m²
+            return area_mm2 / 1_000_000.0
 
         except ValueError:
             return None

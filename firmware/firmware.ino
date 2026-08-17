@@ -17,6 +17,7 @@
 #define STEP_INTERVAL_US  200UL
 #define ENSAIO_INTERVAL   50
 #define TIMEOUT_SENSOR    5000
+#define TEMPO_ESTABILIZACAO 300
 const float fator_calibracao = 23.0;
 
 // ── Estados ────────────────────────────────────────────
@@ -35,6 +36,9 @@ bool stepState = false;
 unsigned long lastStepUs = 0;
 bool motorDir = true;
 float ultimaLeitura = 0;
+
+bool estabilizado = true;
+unsigned long inicioEstabilizacao = 0;
 
 // -------------------------------------------------------
 
@@ -128,6 +132,10 @@ void runCommand(JsonDocument &doc)
   {
     motorDir = false;
     state = E_ENSAIO;
+
+    estabilizado = false;
+    inicioEstabilizacao = millis();
+
     timeBuffer = millis();
   }
 
@@ -176,6 +184,17 @@ void runEnsaio()
   spin();
 
   unsigned long now = millis();
+
+  if (estabilizado == false)
+  {
+    if (now - inicioEstabilizacao >= TEMPO_ESTABILIZACAO)
+    {
+      estabilizado = true;
+      timeBuffer = now;
+    }
+
+    return;
+  }
 
   if (now - timeBuffer >= ENSAIO_INTERVAL)
   {
