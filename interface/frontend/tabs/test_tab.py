@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import (
 )
 
 from frontend.widgets.graph_widget import GraphWidget
+from frontend.widgets.clickable_graph_widget import ClickableGraphWidget
 from frontend.widgets.test_widget import TestWidget
 
 
@@ -16,7 +17,7 @@ class TestTab(QWidget):
             "Força × Deslocamento"
         )
 
-        self.stress_graph = GraphWidget(
+        self.stress_graph = ClickableGraphWidget(
             "Tensão × Deformação"
         )
 

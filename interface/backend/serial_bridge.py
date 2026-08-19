@@ -98,6 +98,8 @@ class SerialBridge:
             print("WARNING: Arduino não conectado")
             return None
 
+        return 1.0
+
         raw = self.arduino.read(self.arduino.in_waiting or 1)
 
         self._buffer += raw.decode("utf-8", errors="ignore")

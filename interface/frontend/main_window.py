@@ -63,6 +63,8 @@ class MainWindow(QWidget):
         self.test_tab.test_widget.reset_clicked.connect(self.test_tab.force_graph.clear)
         self.test_tab.test_widget.reset_clicked.connect(self.test_tab.stress_graph.clear)
         self.test_tab.test_widget.start_clicked.connect(lambda: setattr(self, "tempo", time.perf_counter()))
+        self.test_tab.stress_graph.young_modulus_calculated.connect(self.test_tab.test_widget.set_young_modulus)
+        self.test_tab.test_widget.reset_clicked.connect(self.test_tab.stress_graph.clear_selection)
 
         # Controle de geometria
         self.conf_tab.geometry_widget.comprimento_alterado.connect(self.controller.set_comprimento_corpo)
