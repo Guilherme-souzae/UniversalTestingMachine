@@ -81,6 +81,7 @@ class MainWindow(QWidget):
         self.test_tab.force_graph.add_point(ds, force)
         self.test_tab.stress_graph.add_point(epsilon, sigma)
 
+        print(f"LOG: MEDIÇÃO NO TEMPO: {self.tempo}")
         print(f"LOG: Deslocamento = {self.test_tab.force_graph.x_data[-1]}")
         print(f"LOG: Força = {self.test_tab.force_graph.y_data[-1]}")
         print(f"LOG: Deformação = {self.test_tab.stress_graph.x_data[-1]}")

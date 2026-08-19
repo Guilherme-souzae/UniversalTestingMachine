@@ -2,6 +2,7 @@ APP_STYLE = """
 QWidget {
     background-color: #2b2b2b;
     color: #ffffff;
+    font-family: "Segoe UI", "Arial", sans-serif;
     font-size: 14px;
 }
 
