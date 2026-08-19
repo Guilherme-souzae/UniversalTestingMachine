@@ -1,10 +1,12 @@
-name: Build Windows EXE
+name: Build Windows Release
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -35,15 +37,10 @@ jobs:
         run: |
           pyinstaller --onefile --windowed --name UniversalTestingMachine --paths=. main.py
 
-      - name: Show build files
-        shell: pwsh
-        run: |
-          Write-Host "Arquivos gerados:"
-          Get-ChildItem -Recurse dist
-
-      - name: Upload EXE
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: UniversalTestingMachine-Windows
-          path: interface/dist/UniversalTestingMachine.exe
-          if-no-files-found: error
+          tag_name: ${{ github.ref_name }}
+          name: UniversalTestingMachine ${{ github.ref_name }}
+          generate_release_notes: true
+          files: interface/dist/UniversalTestingMachine.exe
