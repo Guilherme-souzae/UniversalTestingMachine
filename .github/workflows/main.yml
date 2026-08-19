@@ -10,6 +10,10 @@ jobs:
   build:
     runs-on: windows-latest
 
+    defaults:
+      run:
+        working-directory: interface
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,5 +45,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: UniversalTestingMachine-Windows
-          path: dist/UniversalTestingMachine.exe
+          path: interface/dist/UniversalTestingMachine.exe
           if-no-files-found: error
