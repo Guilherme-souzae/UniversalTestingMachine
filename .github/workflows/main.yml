@@ -20,19 +20,26 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
+        shell: pwsh
         run: |
           python -m pip install --upgrade pip
+          pip install -r requirements.txt
           pip install pyinstaller
-          if (Test-Path requirements.txt) {
-            pip install -r requirements.txt
-          }
 
       - name: Build EXE
+        shell: pwsh
         run: |
-          pyinstaller --onefile --windowed --name TensileTesting interface/main.py
+          pyinstaller --onefile --windowed --name UniversalTestingMachine --paths=. main.py
+
+      - name: Show build files
+        shell: pwsh
+        run: |
+          Write-Host "Arquivos gerados:"
+          Get-ChildItem -Recurse dist
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
         with:
-          name: TensileTesting-Windows
-          path: dist/MeuPrograma.exe
+          name: UniversalTestingMachine-Windows
+          path: dist/UniversalTestingMachine.exe
+          if-no-files-found: error
