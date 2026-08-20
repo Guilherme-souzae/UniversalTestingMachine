@@ -15,7 +15,7 @@ class ManualWidget(QWidget):
     up_pressed = pyqtSignal()
     down_pressed = pyqtSignal()
     move_released = pyqtSignal()
-    value_changed = pyqtSignal(float)
+    # value_changed = pyqtSignal(float)
 
     def __init__(self):
         super().__init__()
@@ -41,22 +41,22 @@ class ManualWidget(QWidget):
         buttons_layout.addWidget(self.btn_down)
 
         # Campo para digitar número
-        self.label_value = QLabel("Valor:")
-        self.spin_value = QDoubleSpinBox()
-        self.spin_value.setObjectName("valueSpinBox")
-        self.spin_value.setDecimals(2)
-        self.spin_value.setRange(-1_000_000.0, 1_000_000.0)
-        self.spin_value.setSingleStep(1.0)
+        # self.label_value = QLabel("Valor:")
+        # self.spin_value = QDoubleSpinBox()
+        # self.spin_value.setObjectName("valueSpinBox")
+        # self.spin_value.setDecimals(2)
+        # self.spin_value.setRange(-1_000_000.0, 1_000_000.0)
+        # self.spin_value.setSingleStep(1.0)
 
-        self.spin_value.valueChanged.connect(self.value_changed.emit)
+        # self.spin_value.valueChanged.connect(self.value_changed.emit)
 
-        value_layout = QHBoxLayout()
-        value_layout.addWidget(self.label_value)
-        value_layout.addWidget(self.spin_value)
+        # value_layout = QHBoxLayout()
+        # value_layout.addWidget(self.label_value)
+        # value_layout.addWidget(self.spin_value)
 
         group_layout = QVBoxLayout()
         group_layout.addLayout(buttons_layout)
-        group_layout.addLayout(value_layout)
+        # group_layout.addLayout(value_layout)
 
         group.setLayout(group_layout)
 

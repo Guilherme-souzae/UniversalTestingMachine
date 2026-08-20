@@ -54,7 +54,7 @@ class MainWindow(QWidget):
         self.conf_tab.manual_widget.up_pressed.connect(self.controller.subir)
         self.conf_tab.manual_widget.down_pressed.connect(self.controller.descer)
         self.conf_tab.manual_widget.move_released.connect(self.controller.parar)
-        self.conf_tab.manual_widget.value_changed.connect(self.controller.set_speed_configuracao)
+        # self.conf_tab.manual_widget.value_changed.connect(self.controller.set_speed_configuracao)
 
         # Controle de ensaio
         self.test_tab.test_widget.start_clicked.connect(self.controller.start)

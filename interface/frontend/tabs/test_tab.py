@@ -12,13 +12,9 @@ class TestTab(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.force_graph = GraphWidget(
-            "Força × Deslocamento"
-        )
+        self.force_graph = GraphWidget("Força × Deslocamento (N / m)")
 
-        self.stress_graph = GraphWidget(
-            "Tensão × Deformação"
-        )
+        self.stress_graph = GraphWidget("Tensão × Deformação (σ / ε)")
 
         self.test_widget = TestWidget()
 
