@@ -14,7 +14,7 @@
 #define DOUT_PIN 6
 
 // ── Configs ────────────────────────────────────────────
-#define STEP_INTERVAL_US  200UL
+#define STEP_INTERVAL_US  350UL
 #define ENSAIO_INTERVAL   20
 #define TIMEOUT_SENSOR    5000
 #define TEMPO_ESTABILIZACAO 300

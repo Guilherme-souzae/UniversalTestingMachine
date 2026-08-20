@@ -7,7 +7,7 @@ class MainController(QObject):
     data_received = pyqtSignal(float)
 
     INTERVALO_LEITURA = 20 #MS
-    VELOCIDADE_LINEAR = 0.0104 # M/S
+    VELOCIDADE_LINEAR = 0.0065 # M/S
     AREA_CORPO = 1 # M^2
     COMPRIMENTO_CORPO = 1
 
